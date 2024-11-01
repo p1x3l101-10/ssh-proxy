@@ -14,4 +14,5 @@ CPMAddPackage(
 build(
     BINARY ssh-proxy
     LIBRARIES tomlplusplus::tomlplusplus
+    INSTALL_TARGET
 )
