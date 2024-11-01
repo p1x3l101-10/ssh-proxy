@@ -1,6 +1,7 @@
 #include "ssh-proxy.hpp"
 #include "config.hpp"
 #include <iostream>
+#include <memory>
 #include <string>
 #include <filesystem>
 
@@ -18,10 +19,7 @@ int main (int argc, char* argv[]) {
     if (debug) {
         std::cout << "Config file: " << config.string() << std::endl;
     }
-    sshProxy::socksProxy* ssh = new sshProxy::socksProxy(config, debug);
+    std::unique_ptr<sshProxy::socksProxy> ssh(new sshProxy::socksProxy(config, debug));
     ssh->execute();
-    // Cleanup
-    delete ssh;
-    ssh = NULL;
     return 0;
 }
