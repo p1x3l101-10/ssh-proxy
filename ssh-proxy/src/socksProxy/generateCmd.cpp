@@ -40,7 +40,7 @@ void sshProxy::socksProxy::generateCmd() {
     if (socksProxy::debug) {
         std::cout << "Cmdline:" << '\t' << std::endl;
         for (const auto& arg : argv) {
-            std::cout << arg;
+            std::cout << arg << ' ';
         }
         std::cout << std::endl;
     }
