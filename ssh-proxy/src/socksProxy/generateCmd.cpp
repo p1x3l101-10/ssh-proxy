@@ -1,6 +1,7 @@
 #include "ssh-proxy.hpp"
 #include <string>
 #include <vector>
+#include <iostream>
 
 using std::string;
 using std::vector;
@@ -35,6 +36,13 @@ void sshProxy::socksProxy::generateCmd() {
         string sshAddr;
         sshAddr = socksProxy::sshConf.username + "@" + socksProxy::sshConf.ipAddr;
         argv.push_back(sshAddr);
+    }
+    if (socksProxy::debug) {
+        std::cout << "Cmdline:" << '\t' << std::endl;
+        for (const auto& arg : argv) {
+            std::cout << arg;
+        }
+        std::cout << std::endl;
     }
     socksProxy::execCmd = argv;
 }

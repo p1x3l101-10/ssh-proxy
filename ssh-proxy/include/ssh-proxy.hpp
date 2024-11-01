@@ -15,6 +15,7 @@ namespace sshProxy {
             char** convertC(vector<string> stringList);
             vector<string> execCmd;
             char** cmdArgv;
+            bool debug = false;
         protected:
             struct sshArgs {
                 string username;
@@ -32,10 +33,11 @@ namespace sshProxy {
             sshArgs sshConf;
             config config;
             void execute();
-            socksProxy(path toml) {
+            socksProxy(path toml, bool debug = false) {
+                socksProxy::debug = debug;
                 serializeTOML(toml);
                 generateCmd();
-                cmdArgv = convertC(execCmd);
+                socksProxy::cmdArgv = convertC(execCmd);
             };
     };
 }
