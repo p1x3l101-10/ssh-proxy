@@ -1,0 +1,3 @@
+[submodule "cmake-libs"]
+	path = cmake-libs
+	url = https://github.com/p1x3l101-10/cmake-libs

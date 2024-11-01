@@ -1,0 +1,8 @@
+[sshConf]
+username="borg"
+ipAddr="127.0.0.1"
+port=22
+
+[config]
+verbose=false
+openAll=false
