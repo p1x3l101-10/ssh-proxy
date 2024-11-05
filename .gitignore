@@ -74,3 +74,4 @@ CMakeLists.txt.user*
 # Build artifacts
 /build
 /.cache
+/compile_commands.json
