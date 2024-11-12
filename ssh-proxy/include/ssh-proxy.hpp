@@ -20,6 +20,7 @@ namespace sshProxy {
                 string username;
                 string ipAddr;
                 int port;
+                string keyFile;
             };
             struct config {
                 bool verbose;
