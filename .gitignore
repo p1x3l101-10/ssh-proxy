@@ -70,9 +70,13 @@ CMakeLists.txt.user*
 # Binaries
 *.dll
 *.exe
+*.o
+*.so
+*.a
+*.wasm
+/build
+/vcpkg_installed
 
 # Build artifacts
-/build
 /.cache
-/compile_commands.json
-/.vscode
+/CMakeUserPresets.json

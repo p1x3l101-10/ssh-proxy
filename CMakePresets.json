@@ -1,0 +1,21 @@
+{
+  "version": 9,
+  "configurePresets": [
+    {
+      "name": "vcpkg",
+      "description": "Uses VCPkg to deal with dependancies",
+      "displayName": "VCPkg",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build",
+      "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "vcpkg",
+      "description": "Uses VCPkg to deal with dependancies",
+      "displayName": "VCPkg",
+      "configurePreset": "vcpkg"
+    }
+  ]
+}
