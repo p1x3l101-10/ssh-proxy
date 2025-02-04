@@ -17,7 +17,7 @@ void sshProxy::socksProxy::serializeTOML(path toml) {
     optional<string> keyFile = tbl["sshConf"]["keyFile"].value<string>();
     socksProxy::sshConf.keyFile = keyFile.value_or("UNSET");
     optional<int> openPort = tbl["config"]["openPort"].value<int>();
-    socksProxy::config.openPort = openPort.value_or(9050);
+    socksProxy::config.openPort = openPort.value_or(1080);
     optional<bool> openAll = tbl["config"]["openAll"].value<bool>();
     socksProxy::config.openAll = openAll.value_or(false);
     optional<bool> compress = tbl["config"]["compress"].value<bool>();
