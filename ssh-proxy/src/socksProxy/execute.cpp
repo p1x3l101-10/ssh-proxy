@@ -65,7 +65,6 @@ void sshProxy::socksProxy::execute() {
     // If there are any failures in the child
     if ( result != 0 ) {
         std::cerr << "Dumping cmdline: " << std::endl;
-        std::cerr << '\t' << binary << std::endl;
         for (const std::string& substr : socksProxy::execCmd) {
             std::cerr << '\t' << substr << std::endl;
         }
