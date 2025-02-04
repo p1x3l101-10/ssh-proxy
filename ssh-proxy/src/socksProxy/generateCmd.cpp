@@ -32,7 +32,7 @@ void sshProxy::socksProxy::generateCmd() {
     } else {
         argv.push_back(std::to_string(socksProxy::config.openPort));
     }
-    if (socksProxy::sshConf.keyFile != "DEFAULT") {
+    if (socksProxy::sshConf.keyFile.compare("UNSET")) {
         argv.push_back("-i");
         argv.push_back(socksProxy::sshConf.keyFile);
     }
