@@ -10,6 +10,6 @@ pkg_check_modules(tomlplusplus REQUIRED IMPORTED_TARGET tomlplusplus)
 set(SSH_PROXY_DEFAULT_FAILURE -244)
 build(
     BINARY ssh-proxy
-    LIBRARIES tomlplusplus::tomlplusplus Boost::process
+    LIBRARIES PkgConfig::tomlplusplus Boost::process
     INSTALL_TARGET
 )
