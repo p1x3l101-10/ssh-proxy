@@ -2,7 +2,9 @@
 username="borg"
 ipAddr="127.0.0.1"
 port=22
+keyFile="/path/to/ssh.key
 
 [config]
 verbose=false
 openAll=false
+compress=true
