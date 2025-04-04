@@ -46,16 +46,25 @@ int main(int argc, char** argv) {
   // Start the socks5 server
   boost::asio::io_context ctx;
   sshProxy::socks5Server server(ctx, config, session);
+  auto workGuard = boost::asio::make_work_guard(ctx); // Keep context alive even when idling
   logger.debug("Registering signal handlers");
   // Register signal handler into context
-  boost::asio::signal_set signals(ctx, SIGINT, SIGTERM);
-  auto workGuard = boost::asio::make_work_guard(ctx); // Keep context alive even when idling
   std::atomic<bool> gracefulShutdown = false;
-  signals.async_wait(
+  boost::asio::signal_set gracefulSignals(ctx, SIGINT, SIGTERM);
+  gracefulSignals.async_wait(
     [&](auto, auto){
       // Something wants us to stop gracefully, so we shall
       logger.info("Please wait, cleaning up...");
       gracefulShutdown = true;
+      workGuard.reset();
+      ctx.stop();
+    }
+  );
+  boost::asio::signal_set ungracefulSignals(ctx, SIGUSR2);
+  ungracefulSignals.async_wait(
+    [&](auto, auto) {
+      // Stop as an error
+      logger.info("Freeing needed resources before emergancy shutdown...");
       workGuard.reset();
       ctx.stop();
     }
