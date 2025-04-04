@@ -13,6 +13,7 @@ void sshProxy::socks5Session::doHandShake() {
       if (!ec && length == 2 && (*buffer)[0] == SOCKS5_VERSION) {
         // Send handshake response (no authentication required)
         std::vector<uint8_t> response = {SOCKS5_VERSION, SOCKS5_NO_AUTH};
+        logger.debug("Sending responce");
         async_write(socket, boost::asio::buffer(response),
           [this, self](boost::system::error_code ec, std::size_t) {
             if (!ec) {
