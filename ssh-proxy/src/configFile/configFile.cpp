@@ -61,7 +61,7 @@ sshProxy::configFile::configFile(std::filesystem::path rawConfigFile) {
   connection.keyFile  = keyFile.value_or("");
   config.clientPort   = clientPort.value_or(1080);
   config.openAll      = openAll.value_or(false);
-  config.compress     = compress.value_or(false); // NYI
+  config.compress     = compress.value_or(false); // TODO: Actually impliment this...
 
   // Choose the client addr
   if (getConfig().openAll) {
