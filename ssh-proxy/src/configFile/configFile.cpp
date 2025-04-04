@@ -1,11 +1,26 @@
 #include "ssh-proxy.hpp"
+#include <filesystem>
 #include <toml++/impl/parse_error.hpp>
 #include <toml++/impl/parser.hpp>
 
 using std::optional;
 using std::string;
 
-sshProxy::configFile::configFile(std::filesystem::path configFile) {
+sshProxy::configFile::configFile(std::filesystem::path rawConfigFile) {
+  std::filesystem::path configFile;
+  if (rawConfigFile.c_str()[0] == '~') { // Resolve home references that the shell failed to handle
+    logger.debug("'~' in file path assumed to be refering to home, correcting path...");
+    std::string filePath = rawConfigFile.string();
+    filePath.erase(0, 1);
+    std::string homeDir = std::getenv("HOME");
+    rawConfigFile = homeDir + filePath;
+  }
+  if (! rawConfigFile.is_absolute()) {
+    logger.debug("File path is not absolute, correcting...");
+    configFile = std::filesystem::absolute(rawConfigFile);
+  } else {
+    configFile = rawConfigFile;
+  }
   logger.info("Serializing config file: " + configFile.string());
   optional<string> username;
   optional<string> ipAddr;
@@ -46,7 +61,7 @@ sshProxy::configFile::configFile(std::filesystem::path configFile) {
   connection.keyFile  = keyFile.value_or("");
   config.clientPort   = clientPort.value_or(1080);
   config.openAll      = openAll.value_or(false);
-  config.compress     = compress.value_or(false);
+  config.compress     = compress.value_or(false); // NYI
 
   // Choose the client addr
   if (getConfig().openAll) {
