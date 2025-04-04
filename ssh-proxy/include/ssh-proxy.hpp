@@ -40,7 +40,7 @@ namespace sshProxy {
       configStruct getConfig() { return this->config; };
       configFile(std::filesystem::path configFile);
   };
-  ssh::Session* createSession (configFile config);
+  std::shared_ptr<ssh::Session> createSession (std::shared_ptr<configFile> config);
   class socks5Session : public std::enable_shared_from_this<socks5Session> {
     private:
       log4cpp::Category& logger = log4cpp::Category::getInstance(CMAKE_PROJECT_NAME".socks5Session");
