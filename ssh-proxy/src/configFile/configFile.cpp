@@ -26,8 +26,7 @@ sshProxy::configFile::configFile(std::filesystem::path configFile) {
     openAll    = tbl.at_path("config.openAll")     .value<bool>  ();
     compress   = tbl.at_path("config.compress")    .value<bool>  ();
   } catch (toml::parse_error& e) {
-    logger.fatal("Toml parsing error!");
-    std::cerr << e << std::endl;
+    logger.fatalStream() << "Toml parsing error!" << e.description();
     exit(1);
   }
   logger.debug("Ensuring config has required variables");

@@ -32,7 +32,12 @@ int main(int argc, char** argv) {
 
   // Read the config
   logger.debug("Reading config file");
-  std::shared_ptr<sshProxy::configFile> config(new sshProxy::configFile(CMAKE_INSTALL_SYSCONFDIR"/ssh-proxy.toml"));
+  std::string configFile = CMAKE_INSTALL_SYSCONFDIR"/ssh-proxy.toml";
+  if (args.map().contains("config")) {
+    logger.debug("Loading config specified on commandline");
+    configFile = args.map()["config"];
+  }
+  std::shared_ptr<sshProxy::configFile> config(new sshProxy::configFile(configFile));
 
   // Start an ssh connection
   auto session = sshProxy::createSession(config);
