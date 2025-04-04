@@ -64,7 +64,7 @@ int main(int argc, char** argv) {
   ungracefulSignals.async_wait(
     [&](auto, auto) {
       // Stop as an error
-      logger.info("Freeing needed resources before emergancy shutdown...");
+      logger.info("Freeing needed resources before emergency shutdown...");
       workGuard.reset();
       ctx.stop();
     }
@@ -76,7 +76,7 @@ int main(int argc, char** argv) {
     root.shutdown();
     return 0;
   } else {
-    root.crit("Main loop stopped unexpectedly, please refer to the logs to find out what happened");
+    root.emerg("Main loop stopped unexpectedly, please refer to the logs to find out what happened");
     return -1;
   }
 }
