@@ -1,6 +1,7 @@
 #include "ssh-proxy.hpp"
 #include "arguments.hpp"
 #include "config.hpp"
+#include <boost/asio/io_context.hpp>
 #include <iostream>
 #include <log4cpp/Appender.hh>
 #include <log4cpp/OstreamAppender.hh>
@@ -36,8 +37,13 @@ int main(int argc, char** argv) {
   // Start an ssh connection
   auto session = sshProxy::createSession(config);
 
-  // End cleanup
-  logger.debug("Reached end of execution");
+  // Start the socks5 server
+  boost::asio::io_context ctx;
+  sshProxy::socks5Server server(ctx, config, session);
+  logger.debug("Starting main loop");
+  ctx.run();
+
+  // Something wants us to stop gracefully, so we shall
   root.info("Goodbye");
   root.shutdown();
   return 0;
