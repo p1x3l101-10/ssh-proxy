@@ -14,4 +14,5 @@ build(
     BINARY ssh-proxy
     LIBRARIES PkgConfig::tomlplusplus Boost::process ssh PkgConfig::log4cpp
     INSTALL_TARGET
+    PUBLIC_COMPILE_OPTIONS "-fexperimental-library"
 )
