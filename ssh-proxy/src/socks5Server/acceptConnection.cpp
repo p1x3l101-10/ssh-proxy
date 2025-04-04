@@ -2,6 +2,7 @@
 #include <boost/system/detail/error_code.hpp>
 
 void sshProxy::socks5Server::acceptConnection() {
+  createLogger(logger);
   logger.debug("Started accepting connections");
   acceptor.async_accept(
     [this](boost::system::error_code ec, tcp::socket socket) {

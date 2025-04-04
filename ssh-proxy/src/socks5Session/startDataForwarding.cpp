@@ -3,6 +3,7 @@
 using boost::asio::buffer;
 
 void sshProxy::socks5Session::startDataForwarding() {
+  createLogger(logger);
   auto self(shared_from_this());
 
   auto clientBuffer = std::make_shared<std::vector<uint8_t>>(1024);

@@ -1,6 +1,7 @@
 #include "ssh-proxy.hpp"
 
 void sshProxy::socks5Session::openSshTunnel(const std::string &host, uint16_t port) {
+  createLogger(logger);
   auto self(shared_from_this());
   if (channel->openForward(host.c_str(), port, config->getConfig().clientAddr.c_str(), config->getConfig().clientPort) != SSH_OK) {
     logger.errorStream() << "Failed to open SSH tunnel: " << session->getError();

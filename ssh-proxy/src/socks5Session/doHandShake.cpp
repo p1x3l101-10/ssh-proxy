@@ -8,6 +8,7 @@ void sshProxy::socks5Session::doHandShake() {
   auto buffer = std::make_shared<std::vector<uint8_t>>(2);
   boost::asio::async_read(socket, boost::asio::buffer(buffer->data(), 2),
     [this, self, buffer](boost::system::error_code ec, std::size_t length) {
+      createLogger(logger);
       logger.debug("Performing handshake");
       if (!ec && length == 2 && (*buffer)[0] == SOCKS5_VERSION) {
         // Send handshake response (no authentication required)

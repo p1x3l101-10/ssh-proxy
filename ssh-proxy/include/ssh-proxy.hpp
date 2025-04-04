@@ -9,6 +9,7 @@
 #include <string>
 #include <boost/asio.hpp>
 #include <libssh/libsshpp.hpp>
+#include "loggerMacro.hpp"
 
 namespace sshProxy {
   using boost::asio::ip::tcp;

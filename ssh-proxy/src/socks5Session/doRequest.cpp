@@ -6,6 +6,7 @@ void sshProxy::socks5Session::doRequest() {
   boost::asio::async_read(socket, boost::asio::buffer(buffer->data(), 2),
     [this, self, buffer](boost::system::error_code ec, std::size_t length) {
       if (!ec && length == 2 && (*buffer)[1] == SOCKS5_CMD_CONNECT && (*buffer)[3] == SOCKS5_ADDR_IPV4) {
+        createLogger(logger);
         uint32_t ip;
         uint16_t port;
         std::memcpy(&ip, &(*buffer)[4], 4);

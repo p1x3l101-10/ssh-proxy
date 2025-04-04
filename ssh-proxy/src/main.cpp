@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
   root.setAppender(appender);
   root.setPriority(log4cpp::Priority::DEBUG);
   root.debug("Logging initialized");
-  log4cpp::Category& logger = log4cpp::Category::getInstance(CMAKE_PROJECT_NAME);
+  log4cpp::Category& logger = log4cpp::Category::getInstance(CMAKE_PROJECT_NAME".main");
   logger.debug("Hierarchical application logging set up.");
 
   // Read the config
