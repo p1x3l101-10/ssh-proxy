@@ -11,30 +11,29 @@ namespace arguments {
         int argc;
         char** argv;
       };
-    private:
-      cArgStruct cArgs;
+      cArgStruct argc;
       std::vector<string> argv;
       std::map<string,string> argm;
-    public:
-      arguments(int argc, char** argv): cArgs({argc, argv}) { // Store cArgs for later and legacy
-        // Vectorise arguments
-        for (int i = 0; i < cArgs.argc; i++) {
-          this->argv.push_back(cArgs.argv[i]);
-        }
-    
-        // Turn vector into argument map
-        for (const string& argument : this->argv) {
-          // Must match pattern of `--argName=argValue`
-          if (argument.starts_with("--") && argument.contains("=")) {
-            string name = argument.substr(2, argument.find("=") - 2);
-            string content = argument.substr(argument.find("=") + 1);
-            // Ensure that there is no issues
+      virtual void argumentProcessor(string head, char splitter) { // Allow overriding if someone else wants to make a different processor
+        for (const string& argument : argv) {
+          if (argument.starts_with(head) && argument.contains(splitter)) {
+            string name = argument.substr(head.length(), argument.find(splitter) - head.length());
+            string content = argument.substr(argument.find(splitter) + 1);
             if (!name.empty() && !content.empty()) {
               argm.insert({name, content});
             }
           }
         }
+      }
+    public:
+      arguments(int argc, char** argv): argc({argc, argv}) { // Store cArgs for later and legacy
+        // Vectorise arguments
+        for (int i = 0; i < this->argc.argc; i++) {
+          this->argv.push_back(this->argc.argv[i]);
+        }
+        argumentProcessor("--", '=');
       };
+      cArgStruct cArgs() { return argc; }
       map<string,string> map() { return argm; }
       vector<string> vector() { return argv; }
   };
