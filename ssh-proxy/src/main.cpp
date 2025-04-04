@@ -2,6 +2,7 @@
 #include "arguments.hpp"
 #include "config.hpp"
 #include <boost/asio/io_context.hpp>
+#include <boost/asio/signal_set.hpp>
 #include <iostream>
 #include <log4cpp/Appender.hh>
 #include <log4cpp/OstreamAppender.hh>
@@ -45,11 +46,28 @@ int main(int argc, char** argv) {
   // Start the socks5 server
   boost::asio::io_context ctx;
   sshProxy::socks5Server server(ctx, config, session);
+  logger.debug("Registering signal handlers");
+  // Register signal handler into context
+  boost::asio::signal_set signals(ctx, SIGINT, SIGTERM);
+  auto workGuard = boost::asio::make_work_guard(ctx); // Keep context alive even when idling
+  std::atomic<bool> gracefulShutdown = false;
+  signals.async_wait(
+    [&](auto, auto){
+      // Something wants us to stop gracefully, so we shall
+      logger.info("Please wait, cleaning up...");
+      gracefulShutdown = true;
+      workGuard.reset();
+      ctx.stop();
+    }
+  );
   logger.debug("Starting main loop");
   ctx.run();
-
-  // Something wants us to stop gracefully, so we shall
-  root.info("Goodbye");
-  root.shutdown();
-  return 0;
+  if (gracefulShutdown) {
+    root.info("Goodbye");
+    root.shutdown();
+    return 0;
+  } else {
+    root.crit("Main loop stopped unexpectedly, please refer to the logs to find out what happened");
+    return -1;
+  }
 }
