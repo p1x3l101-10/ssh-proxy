@@ -3,7 +3,7 @@
 
 void sshProxy::socks5Server::acceptConnection() {
   createLogger(logger);
-  logger.debug("Started accepting connections");
+  logger.info("Started accepting connections");
   acceptor.async_accept(
     [this](boost::system::error_code ec, tcp::socket socket) {
       if (!ec) {

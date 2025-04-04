@@ -11,6 +11,6 @@ sshProxy::socks5Server::socks5Server(boost::asio::io_context &ctx, std::shared_p
     config->getConfig().clientPort
   )
 }) {
-  logger.info("Created socks5Server");
+  logger.debug("Created socks5 Server");
   acceptConnection();
 }
