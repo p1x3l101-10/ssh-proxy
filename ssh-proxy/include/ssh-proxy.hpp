@@ -27,6 +27,7 @@ namespace sshProxy {
         std::string keyFile;
       };
       struct configStruct {
+        std::string clientAddr;
         int clientPort;
         bool openAll;
         bool compress;
@@ -46,22 +47,15 @@ namespace sshProxy {
     private:
       log4cpp::Category& logger = log4cpp::Category::getInstance(CMAKE_PROJECT_NAME".socks5Session");
       std::shared_ptr<configFile> config;
-      io_context &ioContext;
       tcp::socket socket;
-      ssh::Session &session;
+      std::shared_ptr<ssh::Session> session;
+      std::shared_ptr<ssh::Channel> channel;
       void doHandShake();
       void doRequest();
-      void openSshTunnel();
+      void openSshTunnel(const std::string &host, uint16_t port);
       void startDataForwarding();
     public:
-      socks5Session(std::shared_ptr<configFile> conf
-                   , tcp::socket socket
-                   , io_context &ioContext
-                   , ssh::Session &session
-                   ) : config(conf)
-                     , socket(std::move(socket))
-                     , ioContext(ioContext)
-                     , session(session) {}
+      socks5Session(tcp::socket socket, std::shared_ptr<ssh::Session> session);
       void start() { doHandShake(); };
   };
   class socks5Server {

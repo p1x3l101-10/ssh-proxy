@@ -48,4 +48,11 @@ sshProxy::configFile::configFile(std::filesystem::path configFile) {
   config.clientPort   = clientPort.value_or(1080);
   config.openAll      = openAll.value_or(false);
   config.compress     = compress.value_or(false);
+
+  // Choose the client addr
+  if (getConfig().openAll) {
+    config.clientAddr = "0.0.0.0";
+  } else {
+    config.clientAddr = "127.0.0.1";
+  }
 };
