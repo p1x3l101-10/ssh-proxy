@@ -5,15 +5,41 @@
 
 void sshProxy::socks5Session::doRequest() {
   auto self(shared_from_this());
-  auto header = std::make_shared<std::vector<uint8_t>>(4); // Read VER, CMD, RSV, ATYP
+  auto header = std::make_shared<std::vector<uint8_t>>(7); // Read VER, CMD, RSV, ATYP, DST.ADDR, DST.PORT // First byte is 0?????
   createLogger(earlyLogger);
   earlyLogger.debug("Starting request");
   boost::asio::async_read(socket, boost::asio::buffer(*header),
-    [this, self, header](boost::system::error_code ec, std::size_t length) {
+    [this, self, header](boost::system::error_code ec, std::size_t len) {
       createLogger(logger);
-      if (!ec || length != 4) {
-        logger.error("Failed to read request header");
+      if (ec) {
+        logger.errorStream() << "Error reading request header: " << ec.message();
+        return;
       }
+      for (int i = 1; i < 5; ++i) { // Shave off first byte of header, appearantly the header starts from 1 and not 0
+        (*header)[i-1] = (*header)[i];
+      }
+      len--;
+      if (len != 6) {
+        logger.errorStream() << "Incomplete SOCKS5 header, expected 6 bytes, got: " << len;
+        return;
+      }
+      logger.debugStream() << "Read " << len << " bytes into header buffer";
+      logger.debugStream() << "Received header: "
+                   << "VER: " << static_cast<int>((*header)[0]) << ", "
+                   << "CMD: " << static_cast<int>((*header)[1]) << ", "
+                   << "RSV: " << static_cast<int>((*header)[2]) << ", "
+                   << "ATYP: " << static_cast<int>((*header)[3]) << ", "
+                   << "DST.ADDR: " << static_cast<int>((*header)[4]) << ", "
+                   << "DST.PORT: " << static_cast<int>((*header)[5]);
+      // Ensure we are using socks5
+      uint8_t ver = (*header)[0];
+      if (ver != 0x05) {
+        logger.errorStream() << "Client sent malformed VER in header\n"
+        << "\tWanted: " << std::hex << static_cast<int>(0x05) << std::dec << "\n"
+        << "\tGot: " << std::hex << static_cast<int>(ver) << std::dec;
+        return;
+      }
+
       uint8_t atyp = (*header)[3];
       std::size_t addrLen = 0;
 
@@ -22,7 +48,7 @@ void sshProxy::socks5Session::doRequest() {
         case 0x03: addrLen = 1; break; // Domain name (first byte is length)
         case 0x04: addrLen = 16; break; // IPv6
         default:
-          logger.error("Unknown address type");
+          logger.errorStream() << "Unknown address type: " << std::hex << static_cast<int>(atyp) << std::dec;
           return;
       };
       auto addressPart = std::make_shared<std::vector<uint8_t>>();
@@ -43,8 +69,8 @@ void sshProxy::socks5Session::doRequest() {
                 logger.critStream() << "You have reached a point of code that is not yet implimented\n"
                 << "Make sure to not do whatever you did again.";
                 if(kill(getpid(), SIGUSR2) == -1) {
-                  logger.crit("Unable to stop self, you are now on your own with a broken daemon...");
-                  logger.crit("Entering an infinite loop to prevent damage");
+                  logger.emerg("Unable to stop self, you are now on your own with a broken daemon...");
+                  logger.emerg("Entering an infinite loop to prevent damage");
                   while (true) {}
                 }
               }
