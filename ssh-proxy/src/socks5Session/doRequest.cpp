@@ -1,11 +1,13 @@
+#include "sshProxy/socks5Session.hpp"
 #include "loggerMacro.hpp"
-#include "ssh-proxy.hpp"
+#include <sstream>
+#include <string>
 #include <unistd.h>
 #include <csignal>
 
 void sshProxy::socks5Session::doRequest() {
   auto self(shared_from_this());
-  auto header = std::make_shared<std::vector<uint8_t>>(7); // Read VER, CMD, RSV, ATYP, DST.ADDR, DST.PORT // First byte is 0?????
+  auto header = std::make_shared<std::vector<uint8_t>>(7);
   createLogger(earlyLogger);
   earlyLogger.debug("Starting request");
   boost::asio::async_read(socket, boost::asio::buffer(*header),
@@ -15,28 +17,26 @@ void sshProxy::socks5Session::doRequest() {
         logger.errorStream() << "Error reading request header: " << ec.message();
         return;
       }
-      for (int i = 1; i < 5; ++i) { // Shave off first byte of header, appearantly the header starts from 1 and not 0
-        (*header)[i-1] = (*header)[i];
+      socks5Greeting greet = processGreet(header);
+      {
+        std::stringstream prettyAuthMethods;
+        for (auto it = greet.auth.begin(); it != greet.auth.end(); it++) {
+          bool last = std::next(it) == greet.auth.end();
+          prettyAuthMethods << std::hex << static_cast<int>(*it) << std::dec;
+          if (!last) {
+            prettyAuthMethods << ", ";
+          }
+        }
+        logger.debugStream() << "Received greeting: "
+                     << "VER: " << static_cast<int>(greet.ver) << ", "
+                     << "NAUTH: " << greet.auth.size() << ", "
+                     << "AUTH: " << prettyAuthMethods.str();
       }
-      len--;
-      if (len != 6) {
-        logger.errorStream() << "Incomplete SOCKS5 header, expected 6 bytes, got: " << len;
-        return;
-      }
-      logger.debugStream() << "Read " << len << " bytes into header buffer";
-      logger.debugStream() << "Received header: "
-                   << "VER: " << static_cast<int>((*header)[0]) << ", "
-                   << "CMD: " << static_cast<int>((*header)[1]) << ", "
-                   << "RSV: " << static_cast<int>((*header)[2]) << ", "
-                   << "ATYP: " << static_cast<int>((*header)[3]) << ", "
-                   << "DST.ADDR: " << static_cast<int>((*header)[4]) << ", "
-                   << "DST.PORT: " << static_cast<int>((*header)[5]);
       // Ensure we are using socks5
-      uint8_t ver = (*header)[0];
-      if (ver != 0x05) {
+      if (greet.ver != 0x05) {
         logger.errorStream() << "Client sent malformed VER in header\n"
         << "\tWanted: " << std::hex << static_cast<int>(0x05) << std::dec << "\n"
-        << "\tGot: " << std::hex << static_cast<int>(ver) << std::dec;
+        << "\tGot: " << std::hex << static_cast<int>(greet.ver) << std::dec;
         return;
       }
 
@@ -57,22 +57,44 @@ void sshProxy::socks5Session::doRequest() {
         addressPart->resize(1);
         boost::asio::async_read(socket, boost::asio::buffer(*addressPart),
           [this, self, addressPart, header](boost::system::error_code ec, std::size_t len) {
-            if (ec || len != 1) return;
+            createLogger(logger);
+            if (ec || len != 1) {
+              logger.error("Failed to read domain length");
+              return;
+            }
             uint8_t domainLen = (*addressPart)[0];
+            logger.debugStream() << "Domain length: " << static_cast<int>(domainLen);
             auto domainAndPort = std::make_shared<std::vector<uint8_t>>(domainLen + 2); // +2 for port
             boost::asio::async_read(socket, boost::asio::buffer(*domainAndPort),
-              [this, self, domainAndPort, header](boost::system::error_code ec, std::size_t len) {
-                if (ec) return;
+              [this, self, domainAndPort, header, domainLen](boost::system::error_code ec, std::size_t len) {
                 createLogger(logger);
-                // parse domain and port...
-                // TODO: Actually impliment this...
-                logger.critStream() << "You have reached a point of code that is not yet implimented\n"
-                << "Make sure to not do whatever you did again.";
-                if(kill(getpid(), SIGUSR2) == -1) {
-                  logger.emerg("Unable to stop self, you are now on your own with a broken daemon...");
-                  logger.emerg("Entering an infinite loop to prevent damage");
-                  while (true) {}
+                if (ec || len != domainAndPort->size()) {
+                  logger.error("Failed to read domain name and port");
+                  return;
                 }
+                // Extract domain name from the buffer
+                std::string domain(domainAndPort->begin(), domainAndPort->begin() + domainLen);
+                uint16_t port = ( (*domainAndPort)[domainLen] << 8 ) | (*domainAndPort)[domainLen + 1];
+
+                // Log
+                logger.debugStream() << "Domain: '" << domain << "', Port: '" << port << "'";
+
+                // Resolve the domain
+                boost::asio::ip::tcp::resolver resolver(socket.get_executor());
+                // Resolve the domain name and port directly using resolver::resolve
+                resolver.async_resolve(domain, std::to_string(port),
+                  [this, self, domainAndPort](boost::system::error_code ec, boost::asio::ip::tcp::resolver::results_type results) {
+                    createLogger(logger);
+                    if (ec) {
+                      logger.errorStream() << "Failed to resolve domain: " << ec.message();
+                      return;
+                    }
+                    for (const auto& endpoint : results) {
+                      logger.debugStream() << "Resolved IP: " << endpoint.endpoint().address().to_string()
+                                     << " Port: " << endpoint.endpoint().port();
+                    }
+                  }
+                );
               }
             );
           }

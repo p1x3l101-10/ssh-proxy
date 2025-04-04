@@ -1,6 +1,9 @@
-#include "ssh-proxy.hpp"
 #include "arguments.hpp"
 #include "config.hpp"
+#include "sshProxy/configFile.hpp"
+#include "sshProxy/createSession.hpp"
+#include "sshProxy/loggerLayout.hpp"
+#include "sshProxy/socks5Server.hpp"
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/signal_set.hpp>
 #include <iostream>

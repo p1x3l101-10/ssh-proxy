@@ -1,4 +1,5 @@
-#include "ssh-proxy.hpp"
+#include "sshProxy/socks5Session.hpp"
+#include "loggerMacro.hpp"
 
 void sshProxy::socks5Session::openSshTunnel(const std::string &host, uint16_t port) {
   createLogger(logger);

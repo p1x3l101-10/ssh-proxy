@@ -1,4 +1,5 @@
-#include "ssh-proxy.hpp"
+#include "sshProxy/socks5Session.hpp"
+#include "loggerMacro.hpp"
 #include "config.hpp"
 #include <boost/asio/read.hpp>
 #include <boost/system/detail/error_code.hpp>

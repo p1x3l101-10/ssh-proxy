@@ -1,4 +1,5 @@
-#include "ssh-proxy.hpp"
+#include "sshProxy/socks5Session.hpp"
+#include "loggerMacro.hpp"
 
 using boost::asio::buffer;
 
