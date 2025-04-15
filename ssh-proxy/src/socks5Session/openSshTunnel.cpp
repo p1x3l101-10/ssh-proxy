@@ -1,18 +1,27 @@
+#include "socks5Values/address.hpp"
 #include "sshProxy/socks5Session.hpp"
+#include "socks5Values/connectResponce.hpp"
 #include "loggerMacro.hpp"
 
-void sshProxy::socks5Session::openSshTunnel(const std::string &host, uint16_t port) {
+void sshProxy::socks5Session::openSshTunnel(socks5Values::address addr, socks5Values::port port) {
   createLogger(logger);
   auto self(shared_from_this());
-  if (channel->openForward(host.c_str(), port, config->getConfig().clientAddr.c_str(), config->getConfig().clientPort) != SSH_OK) {
+  enum socks5Values::responceStatus status;
+  if (channel->openForward(addr.string().c_str(), port.portNum, config->getConfig().clientAddr.c_str(), config->getConfig().clientPort) != SSH_OK) {
     logger.errorStream() << "Failed to open SSH tunnel: " << session->getError();
-    return;
+    status = socks5Values::responceStatus::GENERAL_FAILURE;
+  } else {
+    logger.info("Connection successful");
+    status = socks5Values::responceStatus::GRANTED;
   }
 
-  std::vector<uint8_t> successResponse = {SOCKS5_VERSION, 0, 0, SOCKS5_ADDR_IPV4, 0, 0, 0, 0, 0, 0};
+  socks5Values::connectResponce responce(
+    status,
+    addr,
+    port
+  );
 
-  logger.info("Connection successful");
-  async_write(socket, boost::asio::buffer(successResponse),
+  async_write(socket, boost::asio::buffer(responce.data()),
     [this,self](boost::system::error_code ec, std::size_t) {
       if (!ec) {
         startDataForwarding();

@@ -34,24 +34,12 @@ int main(int argc, char** argv) {
   log4cpp::Category& logger = log4cpp::Category::getInstance(CMAKE_PROJECT_NAME".main");
   logger.debug("Hierarchical application logging set up.");
 
-  // Read the config
-  logger.debug("Reading config file");
-  std::string configFile = CMAKE_INSTALL_SYSCONFDIR"/ssh-proxy.toml";
-  if (args.map().contains("config")) {
-    logger.debug("Loading config specified on commandline");
-    configFile = args.map()["config"];
-  }
-  std::shared_ptr<sshProxy::configFile> config(new sshProxy::configFile(configFile));
-
-  // Start an ssh connection
-  auto session = sshProxy::createSession(config);
-
-  // Start the socks5 server
+  // Start a context
   boost::asio::io_context ctx;
-  sshProxy::socks5Server server(ctx, config, session);
   auto workGuard = boost::asio::make_work_guard(ctx); // Keep context alive even when idling
-  logger.debug("Registering signal handlers");
+
   // Register signal handler into context
+  logger.debug("Registering signal handlers");
   std::atomic<bool> gracefulShutdown = false;
   boost::asio::signal_set gracefulSignals(ctx, SIGINT, SIGTERM);
   gracefulSignals.async_wait(
@@ -72,6 +60,18 @@ int main(int argc, char** argv) {
       ctx.stop();
     }
   );
+  // Read the config
+  logger.debug("Reading config file");
+  std::string configFile = CMAKE_INSTALL_SYSCONFDIR"/ssh-proxy.toml";
+  if (args.map().contains("config")) {
+    logger.debug("Loading config specified on commandline");
+    configFile = args.map()["config"];
+  }
+  std::shared_ptr<sshProxy::configFile> config(new sshProxy::configFile(configFile));
+
+  auto session = sshProxy::createSession(config); // Start an ssh connection
+  sshProxy::socks5Server server(ctx, config, session); // Start server
+
   logger.debug("Starting main loop");
   ctx.run();
   if (gracefulShutdown) {
