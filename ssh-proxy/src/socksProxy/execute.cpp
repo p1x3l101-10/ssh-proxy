@@ -1,7 +1,7 @@
 #include "ssh-proxy.hpp"
 #include <iostream>
 #include <stdexcept>
-#include <boost/process/v2.hpp>
+#include <boost/process.hpp>
 #include <boost/asio.hpp>
 #include <string>
 #include <cstdlib>
