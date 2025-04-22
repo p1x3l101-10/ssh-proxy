@@ -23,21 +23,10 @@ namespace socks5Values {
     const address addr;
     const port bindPort;
     // Normal constructor
-    connectResponce(enum responceStatus status, address addr, port bindPort)
-    : status(status), addr(addr), bindPort(bindPort) {};
+    connectResponce(enum responceStatus status, address addr, port bindPort);
     // For failures
-    connectResponce(enum responceStatus error)
-    : status(error), addr({ socks5Values::addressType::IPV4, { 0, 0, 0, 0 } }), bindPort({ 0, 0 }) {};
+    connectResponce(enum responceStatus error);
     // Reply
-    const std::vector<uint8_t> data() const {
-      std::vector<uint8_t> out = {
-        version,
-        static_cast<uint8_t>(status),
-        reserved
-      }; // Set up beginning of responce
-      out.insert(out.end(), addr.data().begin(), addr.data().end()); // Append bindAddress
-      out.insert(out.end(), bindPort.data().begin(), bindPort.data().end()); // Append bindPort (the array version)
-      return out; // The format for the responce should be: { VER(1), STATUS(1), RES(1), BINDADDR(?), BINDPORT(2) }
-    };
+    const std::vector<uint8_t> data() const;
   };
 }
