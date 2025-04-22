@@ -12,7 +12,20 @@ void sshProxy::socks5Session::connectLocal(socks5Values::clientConnect &connecti
   if (connection.destinationAddress.type != socks5Values::addressType::DOMAIN_NAME) {
     logger.debug("Skipping resolution");
     tcp::endpoint endpoint = { boost::asio::ip::make_address(connection.destinationAddress.string()), connection.destinationPort.portNum };
+    // Start the connection timer
+    connectTimer.expires_after(std::chrono::seconds(CONNECTION_TIMEOUT_SECONDS));
+    connectTimer.async_wait([this, self](boost::system::error_code ec){
+      createLogger(logger);
+      if (!ec) {
+        logger.error("Timed out");
+        remoteSocket.cancel(); // Timed out
+        socks5Values::connectResponce failure = socks5Values::responceStatus::TTL_EXPIRED;
+        auto ret = async_write(clientSocket, boost::asio::buffer(failure.data()));
+        closeBoth();
+      } else { errorhander(ec, logger.getName()); }
+    });
     remoteSocket.async_connect(endpoint, [this, self, connection, endpoint](boost::system::error_code ec){
+      connectTimer.cancel(); // Success
       createLogger(logger);
       if (!ec) {
         logger.debug("Created remote socket");
@@ -39,9 +52,10 @@ void sshProxy::socks5Session::connectLocal(socks5Values::clientConnect &connecti
           if (!ec) {
             logger.error("Timed out");
             remoteSocket.cancel(); // Timed out
-            socks5Values::connectResponce failure = socks5Values::responceStatus::GENERAL_FAILURE;
+            socks5Values::connectResponce failure = socks5Values::responceStatus::TTL_EXPIRED;
             auto ret = async_write(clientSocket, boost::asio::buffer(failure.data()));
-          }
+            closeBoth();
+          } else { errorhander(ec, logger.getName()); }
         });
         boost::asio::async_connect(remoteSocket, results, [this, self, connection](boost::system::error_code ec, const tcp::endpoint&){
           connectTimer.cancel(); // Success
