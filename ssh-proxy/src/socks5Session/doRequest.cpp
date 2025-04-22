@@ -72,7 +72,7 @@ void sshProxy::socks5Session::doRequest() {
                   connection(connect);
                 } catch (std::runtime_error &e) {
                   if (std::strcmp(e.what(), "Bad address size")) {
-                    logger.debug("Client send bad address");
+                    logger.debug("Client sent bad address");
                     socks5Values::connectResponce failure = socks5Values::responceStatus::PROTOCOL_ERROR;
                     auto ret = async_write(clientSocket, boost::asio::buffer(failure.data()));
                     return;
@@ -93,7 +93,7 @@ void sshProxy::socks5Session::doRequest() {
               connection(connect);
             } catch (std::runtime_error &e) {
               if (std::strcmp(e.what(), "Bad address size")) {
-                logger.debug("Client send bad address");
+                logger.debug("Client sent bad address");
                 socks5Values::connectResponce failure = socks5Values::responceStatus::PROTOCOL_ERROR;
                 auto ret = async_write(clientSocket, boost::asio::buffer(failure.data()));
                 return;
