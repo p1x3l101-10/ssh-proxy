@@ -24,31 +24,35 @@ namespace socks5Values {
       out.insert(out.end(), addr.begin(), addr.end());
       return out;
     };
-    const std::string string() {
+    const std::string string() const {
       std::stringstream out;
       switch (type) {
         case socks5Values::addressType::IPV4: {
-          for (int i = 0; i < 4; i++) {
-            out << addr.at(i);
-            if (i != 4) {
+          for (int i = addr.size() - 1; i >= 0; i--) {
+            out << static_cast<int>(addr.at(i));
+            if (i != 0) {
               out << ".";
             }
           }
+          break;
         }
         case socks5Values::addressType::IPV6: {
-          for (int i = 0; i < 16; i = i + 2) {
-            out << addr.at(i);
-            out << addr.at(i + 1);
-            if (i != 16) {
+          for (int i = addr.size() - 1; i >= 0; i = i - 2) {
+            out << std::hex
+                << static_cast<int>(addr.at(i + 1))
+                << static_cast<int>(addr.at(i))
+                << std::dec;
+            if (i != 0) {
               out << "::";
             }
           }
+          break;
         }
         case socks5Values::addressType::DOMAIN_NAME: {
-          int len = addr.at(0);
-          for (int i = 1; i < len; i++) {
+          for (int i = 0; i < addr.size(); i++) {
             out << addr.at(i);
           }
+          break;
         }
       }
       return out.str();
@@ -58,15 +62,7 @@ namespace socks5Values {
         switch (type) {
           case socks5Values::addressType::IPV4: if (addr.size() != 4) throw std::runtime_error("Bad address size"); break;
           case socks5Values::addressType::IPV6: if (addr.size() != 16) throw std::runtime_error("Bad address size"); break;
-          case socks5Values::addressType::DOMAIN_NAME: {
-            auto len = addr.at(0);
-            if (addr.size() == 1) {
-              throw std::runtime_error("Bad address format");
-            }
-            if (addr.size() - 1 != len) {
-              throw std::runtime_error("Bad address size");
-            }
-          }
+          case socks5Values::addressType::DOMAIN_NAME: break;
         }
       }
   };

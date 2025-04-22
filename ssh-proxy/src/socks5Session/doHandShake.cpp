@@ -10,7 +10,7 @@
 void sshProxy::socks5Session::doHandShake() {
   auto self(shared_from_this());
   auto buffer = std::make_shared<std::vector<uint8_t>>(4);
-  boost::asio::async_read(socket, boost::asio::buffer(*buffer),
+  boost::asio::async_read(clientSocket, boost::asio::buffer(*buffer),
     [this, self, buffer](boost::system::error_code ec, std::size_t length) {
       createLogger(logger);
       logger.debug("Performing handshake");
@@ -27,10 +27,10 @@ void sshProxy::socks5Session::doHandShake() {
       }
       logger.debug("Deciding on auth method to use");
       responce = std::make_shared<socks5Values::responce>(selectAuthMethod(*greeting));
-      if (!ec && greeting->ver != 0x05 && responce->chosenAuth != socks5Values::authTypes::DECLINE_AUTH) {
+      if (!ec) {
         logger.debug("Sending responce");
-        async_write(socket, boost::asio::buffer(responce->data()),
-          [this, self](boost::system::error_code ec, std::size_t) {
+        async_write(clientSocket, boost::asio::buffer(responce->data().data(), responce->data().size()),
+          [this, self, responce](boost::system::error_code ec, std::size_t) {
             if (!ec) {
               doRequest();
             }

@@ -16,7 +16,7 @@ std::string sshProxy::loggerLayout::format(const log4cpp::LoggingEvent& event) {
   string elapsedStr = std::to_string(elapsed.count());
 
   // Padding
-  elapsedStr.resize(10, ' ');
+  elapsedStr.resize(11, ' ');
   string priority = "[" + log4cpp::Priority::getPriorityName(event.priority) + "]";
   priority.resize(7, ' ');
 

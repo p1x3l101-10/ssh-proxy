@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <array>
+#include <string>
 
 namespace socks5Values {
   struct port {
@@ -14,6 +15,9 @@ namespace socks5Values {
         static_cast<uint8_t>((portNum >> 8) & 0xFF), // high byte
         static_cast<uint8_t>(portNum & 0xFF)         // low byte
       };
+    }
+    const std::string string() const {
+      return std::to_string(portNum);
     }
   };
 }

@@ -1,6 +1,7 @@
 #include "sshProxy/configFile.hpp"
 #include "sshProxy/socks5Server.hpp"
 #include <boost/asio/io_context.hpp>
+#include <memory>
 
 using boost::asio::ip::tcp;
 

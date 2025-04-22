@@ -1,11 +1,16 @@
 #include "sshProxy/socks5Session.hpp"
 #include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/associated_executor.hpp>
+#include <boost/asio/associated_executor.hpp>
+#include <boost/asio/io_context.hpp>
 #include <memory>
 
 using boost::asio::ip::tcp;
 
-sshProxy::socks5Session::socks5Session(tcp::socket socket, std::shared_ptr<ssh::Session> session)
-: socket(std::move(socket))
+sshProxy::socks5Session::socks5Session(tcp::socket clientSocket, std::shared_ptr<ssh::Session> session)
+: clientSocket(std::move(clientSocket))
+, remoteSocket(clientSocket.get_executor())
+, resolver(tcp::resolver(clientSocket.get_executor()))
 , session(session)
-, channel(std::make_shared<ssh::Channel>(*session))
+, connectTimer(clientSocket.get_executor())
 {}

@@ -5,11 +5,20 @@
 
 socks5Values::authTypes sshProxy::socks5Session::selectAuthMethod(socks5Values::greeting greeting) {
   createLogger(logger);
-  logger.debug("Selecting authentication method");
+  // List auth methods supported by client
+  std::stringstream clientAuth;
+  for (enum socks5Values::authTypes auth : greeting.auth) {
+    clientAuth << magic_enum::enum_name(auth);
+    if (auth != greeting.auth.back()) {
+      clientAuth << ", ";
+    }
+  }
+  logger.debugStream() << "Client supports auth methods: " << clientAuth.str();
+  // Pick auth
   for (const auto& authCandidate : greeting.auth) {
     for (const auto& supportedAuthCandidate : supportedAuthMethods) {
       if (authCandidate == supportedAuthCandidate) {
-        logger.debug("Successfully picked auth method");
+        logger.debugStream() << "Successfully picked auth method: " << magic_enum::enum_name(authCandidate);
         return authCandidate;
       }
     }
