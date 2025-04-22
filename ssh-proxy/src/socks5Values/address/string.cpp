@@ -5,7 +5,7 @@ const std::string socks5Values::address::string() const {
   std::stringstream out;
   switch (type) {
     case socks5Values::addressType::IPV4: {
-      for (int i = addr.size() - 1; i >= 0; i--) {
+      for (int i = 0; i < addr.size(); i--) {
         out << static_cast<int>(addr.at(i));
         if (i != 0) {
           out << ".";
@@ -14,7 +14,7 @@ const std::string socks5Values::address::string() const {
       break;
     }
     case socks5Values::addressType::IPV6: {
-      for (int i = addr.size() - 1; i >= 0; i = i - 2) {
+      for (int i = 0; i < addr.size(); i = i - 2) {
         out << std::hex
             << static_cast<int>(addr.at(i + 1))
             << static_cast<int>(addr.at(i))
