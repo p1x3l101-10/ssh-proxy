@@ -14,6 +14,7 @@ void sshProxy::socks5Session::errorhander(boost::system::error_code &ec, const s
     case err::host_not_found:
     case err::host_unreachable: code = responceStatus::HOST_UNREACHABLE; break;
     case err::network_unreachable: code = responceStatus::NETWORK_UNREACHABLE; break;
+    case err::eof:
     case err::connection_refused: code = responceStatus::CONNECTION_REFUSED_BY_DEST; break;
     case err::shut_down:
     case err::timed_out: code = responceStatus::TTL_EXPIRED; break;
