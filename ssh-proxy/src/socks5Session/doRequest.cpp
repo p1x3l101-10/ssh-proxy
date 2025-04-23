@@ -88,19 +88,21 @@ void sshProxy::socks5Session::doRequest() {
             data.reserve(header->size() + tailer->size());
             data.insert(data.end(), header->begin(), header->end());
             data.insert(data.end(), tailer->begin(), tailer->end());
-            try {
-              socks5Values::clientConnect connect(data);
-              connection(connect);
-            } catch (std::runtime_error &e) {
-              if (std::strcmp(e.what(), "Bad address size")) {
-                logger.debug("Client sent bad address");
-                socks5Values::connectResponce failure = socks5Values::responceStatus::PROTOCOL_ERROR;
-                auto ret = async_write(clientSocket, boost::asio::buffer(failure.data()));
-                return;
-              } else {
-                throw e; // Not my error
+            socks5Values::clientConnect connect = [&]() -> socks5Values::clientConnect {
+              try {
+                return socks5Values::clientConnect(data);
+              } catch (const std::runtime_error &e) {
+                if (std::strcmp(e.what(), "Bad address size") == 0) {
+                  logger.debug("Client sent bad address");
+                  socks5Values::connectResponce failure = socks5Values::responceStatus::PROTOCOL_ERROR;
+                  auto ret = async_write(clientSocket, boost::asio::buffer(failure.data()));
+                  closeBoth(); // Shut down this controlpath
+                } else {
+                  throw; // Not my error
+                }
               }
-            }
+            }();
+            connection(connect);
           }
         }
       );
