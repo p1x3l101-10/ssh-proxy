@@ -1,4 +1,5 @@
 #include "config.hpp"
+#include "license.h"
 #include "sshProxy/configFile.hpp"
 #include "sshProxy/createSession.hpp"
 #include "sshProxy/loggerLayout.hpp"
@@ -25,9 +26,10 @@ int main(int ac, char** av) {
   desc.add_options()
     ("help", "prints this help message")
     ("version", "print the version info")
+    ("license", "print the full license info for this program")
     ("config", po::value<std::string>(), "path to config file")
     ("logfile", po::value<std::string>(), "path to log file")
-    ("loglevel", po::value<std::string>(), "minimum loglevel to use");
+    ("loglevel", po::value<std::string>(), "minimum loglevel to use")
   ;
   po::variables_map vm;
   try {
@@ -48,6 +50,10 @@ int main(int ac, char** av) {
               << CMAKE_PROJECT_HOMEPAGE_URL << "\n"
               << "\tCopyright 2025 Scott Blatt, SPDX short identifier: BSD-3-Clause" << std::endl;
     return 0;
+  }
+  if (vm.count("license")) {
+    std::cout << CMAKE_PROJECT_NAME << " (version: " << CMAKE_PROJECT_VERSION << "):\n"
+              << LICENSE_TEXT << std::endl;
   }
   // Set up logging
   log4cpp::Appender* appender;

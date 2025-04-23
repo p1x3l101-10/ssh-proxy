@@ -21,6 +21,7 @@ set(DEFAULT_LOGLEVEL "DEBUG")
 build(
     BINARY ssh-proxy
     LIBRARIES PkgConfig::tomlplusplus Boost::process ssh PkgConfig::log4cpp magic_enum::magic_enum Boost::system Boost::regex Boost::program_options
+    EMBED_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE"
     INSTALL_TARGET
     PUBLIC_COMPILE_OPTIONS "-fexperimental-library"
 )
