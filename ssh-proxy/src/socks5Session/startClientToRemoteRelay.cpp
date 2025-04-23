@@ -12,10 +12,10 @@ void sshProxy::socks5Session::startClientToRemoteRelay() {
           [this, self](boost::system::error_code ec, std::size_t length){
             if (!ec) {
               startClientToRemoteRelay();
-            } else { errorhander(ec, this->logger.getName() + "clientToRemote.write"); }
+            } else { errorhander(ec, this->logger.getName() + ".clientToRemote.write"); }
           }
         );
-      } else { errorhander(ec, this->logger.getName() + "clientToRemote.read"); }
+      } else { errorhander(ec, this->logger.getName() + ".clientToRemote.read"); }
     }
   );
 }
