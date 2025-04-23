@@ -1,4 +1,3 @@
-#include "arguments.hpp"
 #include "config.hpp"
 #include "sshProxy/configFile.hpp"
 #include "sshProxy/createSession.hpp"
@@ -15,21 +14,61 @@
 #include <log4cpp/BasicLayout.hh>
 #include <log4cpp/Priority.hh>
 #include <memory>
+#include <magic_enum/magic_enum.hpp>
+#include <boost/program_options.hpp>
 
-int main(int argc, char** argv) {
+namespace po = boost::program_options;
+
+int main(int ac, char** av) {
   // Process args
-  arguments::arguments args(argc,argv);
+  po::options_description desc("Allowed options");
+  desc.add_options()
+    ("help", "prints this help message")
+    ("version", "print the version info")
+    ("config", po::value<std::string>(), "path to config file")
+    ("logfile", po::value<std::string>(), "path to log file")
+    ("loglevel", po::value<std::string>(), "minimum loglevel to use");
+  ;
+  po::variables_map vm;
+  try {
+    po::store(po::parse_command_line(ac, av, desc), vm);
+  } catch (po::unknown_option &uo) {
+    std::cerr << uo.what() << "\n"
+         << desc << std::endl;
+    return 1;
+  }
+  // Arg options before logging
+  if (vm.count("help")) {
+    std::cout << desc << std::endl;
+    return 0;
+  }
+  if (vm.count("version")) {
+    std::cout << CMAKE_PROJECT_NAME << " (version: " << CMAKE_PROJECT_VERSION << ")\n"
+              << CMAKE_PROJECT_DESCRIPTION << "\n"
+              << CMAKE_PROJECT_HOMEPAGE_URL << "\n"
+              << "\tCopyright 2025 Scott Blatt, SPDX short identifier: BSD-3-Clause" << std::endl;
+    return 0;
+  }
   // Set up logging
   log4cpp::Appender* appender;
-  if (args.map().contains("logFile")) {
-    appender = new log4cpp::FileAppender("default", args.map()["logFile"]);
+  if (vm.count("logfile")) {
+    appender = new log4cpp::FileAppender("default", vm["logFile"].as<std::string>());
   } else {
     appender = new log4cpp::OstreamAppender("console", &std::cout);
   }
   appender->setLayout(new sshProxy::loggerLayout());
   log4cpp::Category& root = log4cpp::Category::getRoot();
   root.setAppender(appender);
-  root.setPriority(log4cpp::Priority::DEBUG);
+  if (vm.count("loglevel")) { // Set loglevel
+    auto loglevel = magic_enum::enum_cast<log4cpp::Priority::PriorityLevel>(vm["loglevel"].as<std::string>());
+    if (loglevel.has_value()) {
+      root.setPriority(loglevel.value());
+    } else {
+      root.setPriority(DEFAULT_LOGLEVEL);
+    }
+  } else {
+    root.setPriority(DEFAULT_LOGLEVEL);
+  }
   root.debug("Logging initialized");
   log4cpp::Category& logger = log4cpp::Category::getInstance(CMAKE_PROJECT_NAME".main");
   logger.debug("Hierarchical application logging set up.");
@@ -63,9 +102,9 @@ int main(int argc, char** argv) {
   // Read the config
   logger.debug("Reading config file");
   std::string configFile = CMAKE_INSTALL_SYSCONFDIR"/ssh-proxy.toml";
-  if (args.map().contains("config")) {
+  if (vm.count("config")) {
     logger.debug("Loading config specified on commandline");
-    configFile = args.map()["config"];
+    configFile = vm["config"].as<std::string>();
   }
   std::shared_ptr<sshProxy::configFile> config(new sshProxy::configFile(configFile));
 
