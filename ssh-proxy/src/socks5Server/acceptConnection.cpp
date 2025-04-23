@@ -4,20 +4,22 @@
 #include <boost/system/detail/error_code.hpp>
 
 void sshProxy::socks5Server::acceptConnection() {
-  createLogger(logger);
-  logger.info("Started accepting connections");
-  acceptor.async_accept(
-    [this](boost::system::error_code ec, boost::asio::ip::tcp::socket clientSocket) {
-      createLogger(logger);
-      if (!ec) {
-        std::make_shared<socks5Session>(
-          std::move(clientSocket),
-          session
-        )->start();
-      } else {
-        logger.errorStream() << "Accept failed: " << ec.message();
+  boost::asio::post(acceptor.get_executor(), [this](){
+    createLogger(logger);
+    logger.info("Started accepting connections");
+    acceptor.async_accept(
+      [this](boost::system::error_code ec, boost::asio::ip::tcp::socket clientSocket) {
+        createLogger(logger);
+        if (!ec) {
+          std::make_shared<socks5Session>(
+            std::move(clientSocket),
+            session
+          )->start();
+        } else {
+          logger.errorStream() << "Accept failed: " << ec.message();
+        }
+        acceptConnection();
       }
-      acceptConnection();
-    }
-  );
+    );
+  });
 }
