@@ -13,6 +13,17 @@ void sshProxy::socks5Session::errorhander(boost::system::error_code &ec, const s
   socks5Values::responceStatus code;
   switch (ec.value()) {
     case err::operation_aborted: return; // Stop telling me that the stupid timers were stopped
+    case err::eof: {
+      logger.debug("Connection terminated.");
+      closeBoth();
+      return;
+    }
+    case err::not_connected: {
+      // Stop daemon when socket breaks
+      logger.emerg("Socket failure!");
+      closeBoth();
+      exit(100);
+    }
     case err::host_not_found:
     case err::host_unreachable: code = responceStatus::HOST_UNREACHABLE; break;
     case err::network_unreachable: code = responceStatus::NETWORK_UNREACHABLE; break;
@@ -20,10 +31,6 @@ void sshProxy::socks5Session::errorhander(boost::system::error_code &ec, const s
     case err::shut_down:
     case err::timed_out: code = responceStatus::TTL_EXPIRED; break;
     default: code = responceStatus::GENERAL_FAILURE; break;
-  }
-  if (ec.value() == err::eof) {
-    logger.debug("Connection terminated.");
-    closeBoth();
   }
   logger.errorStream() << ec.message();
   socks5Values::connectResponce failure = code;
