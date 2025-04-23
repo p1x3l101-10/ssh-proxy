@@ -4,7 +4,7 @@
 void sshProxy::sshSocket::async_read_some(boost::asio::mutable_buffer buffer, std::function<void(boost::system::error_code, std::size_t)> handler) {
   std::thread([&isConnected = this->isConnected,channel = this->channel, executor = this->executor, buffer, handler = std::move(handler)](){
     // Sanity check
-    if (!channel->isOpen() || !isConnected) {
+    if (!channel->isOpen()) {
       boost::asio::post(executor, [handler]() {
         handler(boost::asio::error::not_connected, 0);
       });

@@ -4,7 +4,7 @@
 void sshProxy::sshSocket::async_write_some(boost::asio::const_buffer buf, std::function<void(boost::system::error_code, std::size_t)> handler) {
   std::thread([&isConnected = this->isConnected,channel = this->channel, executor = this->executor, buffer = std::string((const char*)buf.data(), buf.size()), handler = std::move(handler)](){
     // Sanity check
-    if (!channel->isOpen()||!isConnected) {
+    if (!channel->isOpen()) {
       boost::asio::post(executor, [handler]() {
         handler(boost::asio::error::not_connected, 0);
       });
@@ -12,6 +12,26 @@ void sshProxy::sshSocket::async_write_some(boost::asio::const_buffer buf, std::f
     }
     try {
       int bytes = channel->write(buffer.data(), buffer.size(), false);
+      if (!isConnected) {
+        try {
+          while (true) { // Start a loop to wait for the server to be ready
+            int ret = channel->poll(false);
+            if (ret > 0) {
+              isConnected = true;
+              break;
+            } else if (ret < 0) {
+              break;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+          }
+        } catch (ssh::SshException &ex) {
+          if (ex.getCode() == EAGAIN) {
+            isConnected = true;
+          } else {
+            throw ex;
+          }
+        }
+      }
       boost::asio::post(executor, [&channel, handler, bytes]() {
         if (bytes < 0) {
           // Error reading, return error code
