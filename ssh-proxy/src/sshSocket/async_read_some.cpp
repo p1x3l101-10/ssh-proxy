@@ -1,5 +1,6 @@
 #include "sshProxy/sshSocket.hpp"
 #include <thread>
+#include "config.hpp"
 
 void sshProxy::sshSocket::async_read_some(boost::asio::mutable_buffer buffer, std::function<void(boost::system::error_code, std::size_t)> handler) {
   std::thread([&isConnected = this->isConnected,channel = this->channel, executor = this->executor, buffer, handler = std::move(handler)](){
@@ -11,6 +12,27 @@ void sshProxy::sshSocket::async_read_some(boost::asio::mutable_buffer buffer, st
       return;
     }
     try {
+      if (!isConnected) {
+        try {
+          auto start = std::chrono::steady_clock::now();
+          while ((std::chrono::steady_clock::now() - start).count() <= CONNECTION_TIMEOUT_SECONDS) { // Start a loop to wait for the server to be ready
+            int ret = channel->poll(false);
+            if (ret > 0) {
+              isConnected = true;
+              break;
+            } else if (ret < 0) {
+              break;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+          }
+        } catch (ssh::SshException &ex) {
+          if (ex.getCode() == EAGAIN) {
+            isConnected = true;
+          } else {
+            throw ex;
+          }
+        }
+      }
       int bytes = channel->read(buffer.data(), buffer.size(), false);
       boost::asio::post(executor, [&channel, handler, bytes]() {
         if (bytes < 0) {
