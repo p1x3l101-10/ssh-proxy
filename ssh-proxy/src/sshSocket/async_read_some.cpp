@@ -12,7 +12,7 @@ void sshProxy::sshSocket::async_read_some(boost::asio::mutable_buffer buffer, st
       return;
     }
     try {
-      if (!isConnected) {
+      if (!isConnected) { // Wait for first reply to verify connection
         try {
           auto start = std::chrono::steady_clock::now();
           while ((std::chrono::steady_clock::now() - start).count() <= CONNECTION_TIMEOUT_SECONDS) { // Start a loop to wait for the server to be ready
