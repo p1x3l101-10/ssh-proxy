@@ -14,7 +14,7 @@ void sshProxy::sshSocket::async_connect(const boost::asio::ip::tcp::endpoint& en
       // Test for the connection to be on
       try {
         while (true) { // Start a loop to wait for the server to be ready
-          int ret = channel->poll();
+          int ret = channel->poll(false);
           if (ret > 0) {
             isConnected = true;
             break;
@@ -36,7 +36,7 @@ void sshProxy::sshSocket::async_connect(const boost::asio::ip::tcp::endpoint& en
         });
       } else {
         boost::asio::post(executor, [handler = std::move(handler)]() {
-          handler(boost::system::error_code{boost::system::errc::io_error, boost::system::generic_category()});
+          handler(boost::system::error_code{boost::system::errc::host_unreachable, boost::system::generic_category()});
         });
       }
     } catch (ssh::SshException& ex) {
@@ -56,7 +56,7 @@ void sshProxy::sshSocket::async_connect(const std::string address, const uint16_
       // Test for the connection to be on
       try {
         while (true) { // Start a loop to wait for the server to be ready
-          int ret = channel->poll();
+          int ret = channel->poll(false);
           if (ret > 0) {
             isConnected = true;
             break;
@@ -78,7 +78,7 @@ void sshProxy::sshSocket::async_connect(const std::string address, const uint16_
         });
       } else {
         boost::asio::post(executor, [handler = std::move(handler)]() {
-          handler(boost::system::error_code{boost::system::errc::io_error, boost::system::generic_category()});
+          handler(boost::system::error_code{boost::system::errc::host_unreachable, boost::system::generic_category()});
         });
       }
     } catch (ssh::SshException& ex) {
