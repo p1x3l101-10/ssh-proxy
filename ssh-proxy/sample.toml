@@ -1,8 +1,8 @@
 [sshConf]
-username="borg"
+username="proxyUser"
 ipAddr="127.0.0.1"
 port=22
-keyFile="/path/to/ssh.key
+keyFile="/path/to/ssh.key"
 
 [config]
 verbose=false
