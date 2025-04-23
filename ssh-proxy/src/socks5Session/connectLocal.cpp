@@ -29,16 +29,25 @@ void sshProxy::socks5Session::connectLocal(socks5Values::clientConnect &connecti
       } errorHandler
     });
     remoteSocket.async_connect(endpoint, [this, self, connection, endpoint](boost::system::error_code ec){
-      connectTimer.cancel(); // Success
       createLogger(logger);
       if (!ec) {
         logger.debug("Created remote socket");
         // Acknowlage success
-        socks5Values::connectResponce ack = socks5Values::responceStatus::GRANTED;
-        // Start connection
-        logger.debug("Started data transfer");
-        startClientToRemoteRelay();
-        startRemoteToClientRelay();
+        socks5Values::connectResponce ack = {
+          socks5Values::responceStatus::GRANTED,
+          { socks5Values::addressType::IPV4, {0, 0, 0, 0} },
+          0
+        };
+        async_write(clientSocket, boost::asio::buffer(ack.data()), [this, self](boost::system::error_code ec, std::size_t){
+          connectTimer.cancel(); // Success
+          createLogger(logger);
+          if (!ec) {
+            // Start connection
+            logger.debug("Started data transfer");
+            startClientToRemoteRelay();
+            startRemoteToClientRelay();
+          } errorHandler
+        });
       } errorHandler
     });
   } else {
@@ -60,16 +69,25 @@ void sshProxy::socks5Session::connectLocal(socks5Values::clientConnect &connecti
               } errorHandler
           });
           boost::asio::async_connect(remoteSocket, results, [this, self, connection](boost::system::error_code ec, const tcp::endpoint&){
-            connectTimer.cancel(); // Success
             createLogger(logger);
             if (!ec) {
               logger.debug("Created remote socket");
               // Acknowlage success
-              socks5Values::connectResponce ack = socks5Values::responceStatus::GRANTED;
-              // Start connection
-              logger.debug("Started data transfer");
-              startClientToRemoteRelay();
-              startRemoteToClientRelay();
+              socks5Values::connectResponce ack = {
+                socks5Values::responceStatus::GRANTED,
+                { socks5Values::addressType::IPV4, {0, 0, 0, 0} },
+                0
+              };
+              async_write(clientSocket, boost::asio::buffer(ack.data()), [this, self](boost::system::error_code ec, std::size_t){
+                connectTimer.cancel(); // Success
+                createLogger(logger);
+                if (!ec) {
+                  // Start connection
+                  logger.debug("Started data transfer");
+                  startClientToRemoteRelay();
+                  startRemoteToClientRelay();
+                } errorHandler
+              });
             } errorHandler
           });
         } errorHandler
