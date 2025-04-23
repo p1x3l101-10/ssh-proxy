@@ -30,6 +30,7 @@ int main(int ac, char** av) {
     ("config", po::value<std::string>(), "path to config file")
     ("logfile", po::value<std::string>(), "path to log file")
     ("loglevel", po::value<std::string>(), "minimum loglevel to use")
+    ("daemon", "run the daemon")
   ;
   po::variables_map vm;
   try {
@@ -37,6 +38,11 @@ int main(int ac, char** av) {
   } catch (po::unknown_option &uo) {
     std::cerr << uo.what() << "\n"
          << desc << std::endl;
+    return 1;
+  }
+  // Fail fast if nothing is called
+  if (vm.empty()) {
+    std::cerr << desc << std::endl;
     return 1;
   }
   // Arg options before logging
@@ -79,52 +85,54 @@ int main(int ac, char** av) {
   log4cpp::Category& logger = log4cpp::Category::getInstance(CMAKE_PROJECT_NAME".main");
   logger.debug("Hierarchical application logging set up.");
 
-  // Start a context
-  boost::asio::io_context ctx;
-  auto workGuard = boost::asio::make_work_guard(ctx); // Keep context alive even when idling
-
-  // Register signal handler into context
-  logger.debug("Registering signal handlers");
-  std::atomic<bool> gracefulShutdown = false;
-  boost::asio::signal_set gracefulSignals(ctx, SIGINT, SIGTERM);
-  gracefulSignals.async_wait(
-    [&](auto, auto){
-      // Something wants us to stop gracefully, so we shall
-      logger.info("Please wait, cleaning up...");
-      gracefulShutdown = true;
-      workGuard.reset();
-      ctx.stop();
+  if (vm.count("daemon")) {
+    // Start a context
+    boost::asio::io_context ctx;
+    auto workGuard = boost::asio::make_work_guard(ctx); // Keep context alive even when idling
+  
+    // Register signal handler into context
+    logger.debug("Registering signal handlers");
+    std::atomic<bool> gracefulShutdown = false;
+    boost::asio::signal_set gracefulSignals(ctx, SIGINT, SIGTERM);
+    gracefulSignals.async_wait(
+      [&](auto, auto){
+        // Something wants us to stop gracefully, so we shall
+        logger.info("Please wait, cleaning up...");
+        gracefulShutdown = true;
+        workGuard.reset();
+        ctx.stop();
+      }
+    );
+    boost::asio::signal_set ungracefulSignals(ctx, SIGUSR2);
+    ungracefulSignals.async_wait(
+      [&](auto, auto) {
+        // Stop as an error
+        logger.info("Freeing needed resources before emergency shutdown...");
+        workGuard.reset();
+        ctx.stop();
+      }
+    );
+    // Read the config
+    logger.debug("Reading config file");
+    std::string configFile = CMAKE_INSTALL_SYSCONFDIR"/ssh-proxy.toml";
+    if (vm.count("config")) {
+      logger.debug("Loading config specified on commandline");
+      configFile = vm["config"].as<std::string>();
     }
-  );
-  boost::asio::signal_set ungracefulSignals(ctx, SIGUSR2);
-  ungracefulSignals.async_wait(
-    [&](auto, auto) {
-      // Stop as an error
-      logger.info("Freeing needed resources before emergency shutdown...");
-      workGuard.reset();
-      ctx.stop();
+    std::shared_ptr<sshProxy::configFile> config(new sshProxy::configFile(configFile));
+
+    auto session = sshProxy::createSession(config); // Start an ssh connection
+    sshProxy::socks5Server server(ctx, config, session); // Start server
+
+    logger.debug("Starting main loop");
+    ctx.run();
+    if (gracefulShutdown) {
+      root.info("Goodbye");
+      root.shutdown();
+      return 0;
+    } else {
+      root.emerg("Main loop stopped unexpectedly, please refer to the logs to find out what happened");
+      return -1;
     }
-  );
-  // Read the config
-  logger.debug("Reading config file");
-  std::string configFile = CMAKE_INSTALL_SYSCONFDIR"/ssh-proxy.toml";
-  if (vm.count("config")) {
-    logger.debug("Loading config specified on commandline");
-    configFile = vm["config"].as<std::string>();
-  }
-  std::shared_ptr<sshProxy::configFile> config(new sshProxy::configFile(configFile));
-
-  auto session = sshProxy::createSession(config); // Start an ssh connection
-  sshProxy::socks5Server server(ctx, config, session); // Start server
-
-  logger.debug("Starting main loop");
-  ctx.run();
-  if (gracefulShutdown) {
-    root.info("Goodbye");
-    root.shutdown();
-    return 0;
-  } else {
-    root.emerg("Main loop stopped unexpectedly, please refer to the logs to find out what happened");
-    return -1;
   }
 }
