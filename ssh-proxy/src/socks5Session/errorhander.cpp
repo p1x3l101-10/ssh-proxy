@@ -10,6 +10,7 @@ void sshProxy::socks5Session::errorhander(boost::system::error_code &ec, const s
   switch (ec.value()) {
     namespace err = boost::asio::error;
     using socks5Values::responceStatus;
+    case err::operation_aborted: return; // Stop telling me that the stupid timers were stopped
     case err::host_not_found:
     case err::host_unreachable: code = responceStatus::HOST_UNREACHABLE; break;
     case err::network_unreachable: code = responceStatus::NETWORK_UNREACHABLE; break;
