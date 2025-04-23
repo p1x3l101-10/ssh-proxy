@@ -14,7 +14,6 @@ namespace net = boost::asio;
 using tcp = net::ip::tcp;
 
 bool sshProxy::socks5Session::isBlocked(std::string host) {
-  return true;
   createLogger(logger);
   try {
     net::io_context ioc;
