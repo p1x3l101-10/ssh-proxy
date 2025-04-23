@@ -23,7 +23,7 @@ namespace sshProxy {
       boost::asio::steady_timer connectTimer;
       std::shared_ptr<ssh::Session> session = nullptr;
       std::shared_ptr<ssh::Channel> channel = nullptr;
-      bool usingSsh = false;
+      std::atomic<bool> usingSsh{false};
       void closeBoth();
       void doHandShake();
       void doRequest();

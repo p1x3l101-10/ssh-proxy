@@ -5,6 +5,6 @@ void sshProxy::socks5Session::closeBoth() {
   // I am aware that I should be getting the returns, i just am not using them
   clientSocket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ignored); //NOLINT
   clientSocket.close(ignored); //NOLINT
-  remoteSocket->shutdown();
-  remoteSocket->close();
+  remoteSocket->shutdown(boost::asio::ip::tcp::socket::shutdown_both, ignored);
+  remoteSocket->close(ignored);
 }

@@ -10,7 +10,7 @@ using boost::asio::ip::tcp;
 
 sshProxy::socks5Session::socks5Session(tcp::socket clientSocket, std::shared_ptr<ssh::Session> session)
 : clientSocket(std::move(clientSocket))
-, remoteSocket(std::make_shared<tcpSocket>(clientSocket.get_executor()))
+, remoteSocket(std::make_shared<tcpSocket>(boost::asio::ip::tcp::socket(clientSocket.get_executor())))
 , resolver(tcp::resolver(clientSocket.get_executor()))
 , session(session)
 , connectTimer(clientSocket.get_executor())

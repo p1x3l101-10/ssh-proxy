@@ -101,7 +101,7 @@ void sshProxy::socks5Session::doRequest() {
                   throw; // Not my error
                 }
               }
-            }(); // NOLINT
+            }();
             connection(connect);
           }
         }

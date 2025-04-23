@@ -9,18 +9,20 @@
 
 void sshProxy::socks5Session::doHandShake() {
   auto self(shared_from_this());
-  auto buffer = std::make_shared<std::vector<uint8_t>>(4);
-  boost::asio::async_read(clientSocket, boost::asio::buffer(*buffer),
-    [this, self, buffer](boost::system::error_code ec, std::size_t length) {
+  auto header = std::make_shared<std::vector<uint8_t>>(2);
+  boost::asio::async_read(clientSocket, boost::asio::buffer(*header), [this, self, header](boost::system::error_code ec, std::size_t length) {
+    createLogger(logger);
+    logger.debug("Performing handshake");
+    int nauth = header->at(1);
+    auto auth = std::make_shared<std::vector<uint8_t>>(nauth);
+    boost::asio::async_read(clientSocket, boost::asio::buffer(*auth), [this, self, header, auth](boost::system::error_code ec, std::size_t length) {
       createLogger(logger);
-      logger.debug("Performing handshake");
-      std::shared_ptr<socks5Values::greeting> greeting;
+      std::vector<uint8_t> rawGreet;
+      rawGreet.reserve(header->size() + auth->size());
+      rawGreet.insert(rawGreet.end(), header->begin(), header->end());
+      rawGreet.insert(rawGreet.end(), auth->begin(), auth->end());
+      std::shared_ptr<socks5Values::greeting> greeting = std::make_shared<socks5Values::greeting>(rawGreet);
       std::shared_ptr<socks5Values::responce> responce;
-      if (buffer->size() < 4) {
-        logger.debug("Did not get entire buffer");
-        return;
-      }
-      greeting = std::make_shared<socks5Values::greeting>(*buffer);
       if (greeting->incomplete) {
         logger.debug("Incomplete greeting");
         return;
@@ -37,6 +39,6 @@ void sshProxy::socks5Session::doHandShake() {
           }
         );
       }
-    }
-  );
+    });
+  });
 }
