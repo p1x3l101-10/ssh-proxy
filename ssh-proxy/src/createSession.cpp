@@ -3,6 +3,8 @@
 #include <memory>
 #include <string>
 
+bool sshReachable = true;
+
 std::shared_ptr<ssh::Session> sshProxy::createSession (std::shared_ptr<configFile> config) {
   log4cpp::Category& logger = log4cpp::Category::getInstance(CMAKE_PROJECT_NAME".createSession");
   try {
@@ -18,7 +20,18 @@ std::shared_ptr<ssh::Session> sshProxy::createSession (std::shared_ptr<configFil
     logger.debug("Connecting on port: " + std::to_string(config->getConnection().port));
 
     logger.info("Starting session");
-    session->connect();
+    try {
+      session->connect();
+    } catch (ssh::SshException &e) {
+      if (e.getError().contains("Timeout connecting to " + config->getConnection().ipAddr)) {
+        logger.emerg("Unable to connect to the ssh server, expect blocks");
+        sshReachable = false;
+        return nullptr;
+      } else {
+        throw e;
+      }
+    }
+    sshReachable = true;
 
     if (! config->getConnection().keyFile.empty()) {
       logger.info("Authorizing using configured key");
