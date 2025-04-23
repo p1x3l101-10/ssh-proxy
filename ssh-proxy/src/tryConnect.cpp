@@ -25,4 +25,5 @@ void try_connect(std::shared_ptr<asyncStream> socket, tcp::resolver::results_typ
       }
     });
   };
+  do_connect();
 }
