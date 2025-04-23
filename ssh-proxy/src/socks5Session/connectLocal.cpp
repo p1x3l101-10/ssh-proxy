@@ -26,7 +26,7 @@ void sshProxy::socks5Session::connectLocal(socks5Values::clientConnect &connecti
         socks5Values::connectResponce failure = socks5Values::responceStatus::TTL_EXPIRED;
         auto ret = async_write(clientSocket, boost::asio::buffer(failure.data()));
         closeBoth();
-      } else { errorhander(ec, logger.getName()); }
+      } errorHandler
     });
     remoteSocket.async_connect(endpoint, [this, self, connection, endpoint](boost::system::error_code ec){
       connectTimer.cancel(); // Success
@@ -39,7 +39,7 @@ void sshProxy::socks5Session::connectLocal(socks5Values::clientConnect &connecti
         logger.debug("Started data transfer");
         startClientToRemoteRelay();
         startRemoteToClientRelay();
-      } else { errorhander(ec, logger.getName()); }
+      } errorHandler
     });
   } else {
     logger.debug("Resolving endpoints");
@@ -57,23 +57,22 @@ void sshProxy::socks5Session::connectLocal(socks5Values::clientConnect &connecti
               socks5Values::connectResponce failure = socks5Values::responceStatus::TTL_EXPIRED;
               auto ret = async_write(clientSocket, boost::asio::buffer(failure.data()));
               closeBoth();
-              } else { errorhander(ec, logger.getName()); }
+              } errorHandler
           });
           boost::asio::async_connect(remoteSocket, results, [this, self, connection](boost::system::error_code ec, const tcp::endpoint&){
             connectTimer.cancel(); // Success
             createLogger(logger);
             if (!ec) {
               logger.debug("Created remote socket");
-              logger.debugStream() << "Connection diagram - IP: " << connection.destinationAddress.string() << ", Port: " << connection.destinationPort.string() << ", Address Type: " << magic_enum::enum_name(connection.destinationAddress.type);
               // Acknowlage success
               socks5Values::connectResponce ack = socks5Values::responceStatus::GRANTED;
               // Start connection
               logger.debug("Started data transfer");
               startClientToRemoteRelay();
               startRemoteToClientRelay();
-            } else { errorhander(ec, logger.getName()); }
+            } errorHandler
           });
-        } else { errorhander(ec, logger.getName()); }
+        } errorHandler
       }
     );
   }
