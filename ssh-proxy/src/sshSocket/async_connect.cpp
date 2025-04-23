@@ -21,6 +21,7 @@ void sshProxy::sshSocket::async_connect(const boost::asio::ip::tcp::endpoint& en
           } else if (ret < 0) {
             break;
           }
+          std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
       } catch (ssh::SshException &ex) {
         if (ex.getCode() == EAGAIN) {
@@ -62,6 +63,7 @@ void sshProxy::sshSocket::async_connect(const std::string address, const uint16_
           } else if (ret < 0) {
             break;
           }
+          std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
       } catch (ssh::SshException &ex) {
         if (ex.getCode() == EAGAIN) {
