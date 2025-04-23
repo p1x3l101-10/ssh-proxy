@@ -3,26 +3,23 @@
 #include "socks5Values/connectResponce.hpp"
 #include "loggerMacro.hpp"
 #include <memory>
+#include <magic_enum/magic_enum.hpp>
+#include "sshProxy/sshSocket.hpp"
 
 void sshProxy::socks5Session::connectSsh(socks5Values::clientConnect &connection) {
   createLogger(logger);
   auto self(shared_from_this());
-  enum socks5Values::responceStatus status;
-  // Create ssh channel
-  channel = std::make_shared<ssh::Channel>(*session);
-  logger.debug("Created channel");
-  // Open tunnel
+  logger.debugStream() << "Connection diagram - IP: " << connection.destinationAddress.string() << ", Port: " << connection.destinationPort.string() << ", Address Type: " << magic_enum::enum_name(connection.destinationAddress.type);
+  // Override the socket
   try {
-    channel->openForward(connection.destinationAddress.string().c_str(), connection.destinationPort.portNum, config->getConfig().clientAddr.c_str(), config->getConfig().clientPort);
-    logger.info("Connection successful");
-    status = socks5Values::responceStatus::GRANTED;
+    remoteSocket = std::make_shared<sshProxy::sshSocket>(clientSocket.get_executor(), *session);
   } catch (ssh::SshException &e) {
     logger.errorStream() << "Failed to open SSH tunnel: " << e.getError();
-
-    status = socks5Values::responceStatus::GENERAL_FAILURE;
+    socks5Values::connectResponce failure = socks5Values::responceStatus::NETWORK_UNREACHABLE; // SSH server unreachable
+    auto ret = async_write(clientSocket, boost::asio::buffer(failure.data()));
+    closeBoth(); // Shut down this controlpath
   }
-  // Register remote socket (via ssh channel)
-  logger.debug("Created remote socket");
+  logger.debug("Created ssh remote socket");
   // Start connection
   startClientToRemoteRelay();
   startRemoteToClientRelay();  

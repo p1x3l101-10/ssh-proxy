@@ -8,6 +8,7 @@
 #include <libssh/libsshpp.hpp>
 #include "socks5Values/clientConnect.hpp"
 #include "sshProxy/configFile.hpp"
+#include "asyncStream.hpp"
 
 namespace sshProxy {
   class socks5Session : public std::enable_shared_from_this<socks5Session> {
@@ -17,7 +18,7 @@ namespace sshProxy {
       log4cpp::Category& logger = log4cpp::Category::getInstance(CMAKE_PROJECT_NAME".socks5Session");
       std::shared_ptr<configFile> config = nullptr;
       boost::asio::ip::tcp::socket clientSocket;
-      boost::asio::ip::tcp::socket remoteSocket;
+      std::shared_ptr<asyncStream> remoteSocket;
       boost::asio::ip::tcp::resolver resolver;
       boost::asio::steady_timer connectTimer;
       std::shared_ptr<ssh::Session> session = nullptr;

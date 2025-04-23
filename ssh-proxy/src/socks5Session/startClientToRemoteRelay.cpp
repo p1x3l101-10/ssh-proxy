@@ -8,7 +8,7 @@ void sshProxy::socks5Session::startClientToRemoteRelay() {
   clientSocket.async_read_some(boost::asio::buffer(*buffer),
     [this, self, buffer](boost::system::error_code ec, std::size_t length){
       if (!ec) {
-        async_write(remoteSocket, boost::asio::buffer(buffer->data(), length),
+        async_write(*remoteSocket, boost::asio::buffer(buffer->data(), length),
           [this, self](boost::system::error_code ec, std::size_t length){
             if (!ec) {
               startClientToRemoteRelay();
