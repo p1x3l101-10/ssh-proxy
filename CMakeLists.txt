@@ -1,10 +1,24 @@
 cmake_minimum_required(VERSION 3.30)
+# Autoversion
+execute_process(
+    COMMAND git describe --tags --abbrev=0
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_VARIABLE GIT_TAG
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+string(REGEX REPLACE "^v" "" GIT_TAG "${GIT_TAG}")
+if(GIT_TAG)
+    set(CMAKE_PROJECT_VERSION ${GIT_TAG})
+else()
+    set(CMAKE_PROJECT_VERSION "0.0.0")  # Fallback if no tag is found
+endif()
+
 project(
     "ssh-proxy"
     DESCRIPTION "A daemon that gets around blocking"
     HOMEPAGE_URL "https://github.com/p1x3l101-10/ssh-proxy"
     LANGUAGES CXX
-    VERSION 2.0.0
+    VERSION ${CMAKE_PROJECT_VERSION}
 )
 include(cmake-libs/all)
 set(CMAKE_EXPORT_COMPILE_COMMANDS true)
