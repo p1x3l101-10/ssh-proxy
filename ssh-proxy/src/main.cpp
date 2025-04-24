@@ -5,7 +5,6 @@
 #include "sshProxy/socks5Server.hpp"
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/signal_set.hpp>
-#include <iostream>
 #include <log4cpp/Appender.hh>
 #include <log4cpp/OstreamAppender.hh>
 #include <log4cpp/FileAppender.hh>
