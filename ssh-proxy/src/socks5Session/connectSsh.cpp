@@ -1,4 +1,3 @@
-#include "socks5Values/address.hpp"
 #include "sshProxy/socks5Session.hpp"
 #include "socks5Values/connectResponce.hpp"
 #include "loggerMacro.hpp"
@@ -6,7 +5,7 @@
 #include <magic_enum/magic_enum.hpp>
 #include "sshProxy/sshSocket.hpp"
 
-void sshProxy::socks5Session::connectSsh(socks5Values::clientConnect &connection) {
+void sshProxy::socks5Session::connectSsh(const socks5Values::clientConnect &connection) {
   createLogger(logger);
   auto self(shared_from_this());
   // Override the socket

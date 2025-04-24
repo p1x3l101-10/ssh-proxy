@@ -7,7 +7,7 @@
 using boost::asio::ip::tcp;
 void try_connect(std::shared_ptr<asyncStream> socket, tcp::resolver::results_type results, std::function<void(boost::system::error_code,const tcp::endpoint)> handler);
 
-void sshProxy::socks5Session::connectLocal(socks5Values::clientConnect &connection) {
+void sshProxy::socks5Session::connectLocal(const socks5Values::clientConnect &connection) {
   auto self = shared_from_this();
   createLogger(logger);
   logger.debugStream() << "Connection diagram - IP: " << connection.destinationAddress.string() << ", Port: " << connection.destinationPort.string() << ", Address Type: " << magic_enum::enum_name(connection.destinationAddress.type);

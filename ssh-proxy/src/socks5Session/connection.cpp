@@ -1,6 +1,5 @@
 #include "sshProxy/socks5Session.hpp"
 #include "socks5Values/clientConnect.hpp"
-#include "socks5Values/address.hpp"
 #include "loggerMacro.hpp"
 #include "sshProxy/createSession.hpp"
 
@@ -22,11 +21,15 @@ void sshProxy::socks5Session::connection(socks5Values::clientConnect &connection
     }
   }
   // Test if site is blocked
-  if (isBlocked(connection.destinationAddress.string())) {
-    logger.debug("Destination blocked, proxying traffic");
-    connectSsh(connection);
-  } else {
-    logger.debug("Destination not blocked, relaying");
-    connectLocal(connection);
-  }
+  auto self = shared_from_this();
+  isBlocked(clientSocket.get_executor(), connection, [this, self](const socks5Values::clientConnect &connection, bool isBlocked){
+    createLogger(logger);
+    if (isBlocked) {
+      logger.debug("Destination blocked, proxying traffic");
+      connectSsh(connection);
+    } else {
+      logger.debug("Destination not blocked, relaying");
+      connectLocal(connection);
+    }
+  });
 }
