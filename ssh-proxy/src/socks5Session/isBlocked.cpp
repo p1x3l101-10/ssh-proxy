@@ -79,15 +79,6 @@ void sshProxy::socks5Session::isBlocked(const boost::asio::any_io_executor &ex, 
           stream.socket().shutdown(tcp::socket::shutdown_both, ec); //NOLINT
           connectTimer.cancel(); // We are done now
 
-          // Dump responce for lookup
-          if (connection.destinationAddress.string().contains("chatgpt")) {
-            logger.debug("Dumping temp reply");
-            std::ofstream file;
-            file.open("dump.html", std::ios::trunc);
-            file << res.body() << "\n";
-            file.close();
-          }
-
           // Look for LS categories
           std::string body = res.body();
           std::smatch match;
