@@ -60,6 +60,7 @@ int main(int ac, char** av) {
   if (vm.count("license")) {
     std::cout << CMAKE_PROJECT_NAME << " (version: " << CMAKE_PROJECT_VERSION << "):\n"
               << LICENSE_TEXT << std::endl;
+              return 0;
   }
   // Set up logging
   log4cpp::Appender* appender;
