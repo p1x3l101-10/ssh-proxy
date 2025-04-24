@@ -16,6 +16,11 @@ find_package(PkgConfig 2.4.3 REQUIRED)
 pkg_check_modules(tomlplusplus REQUIRED IMPORTED_TARGET tomlplusplus)
 pkg_check_modules(log4cpp REQUIRED IMPORTED_TARGET log4cpp)
 
+include(GNUInstallDirs)
+if(PREFIXED_BUILD) # fix the build for things like homebrew
+    set(CMAKE_INSTALL_FULL_SYSCONFDIR "${CMAKE_INSTALL_SYSCONFDIR}")
+endif()
+
 if(NOT CONNECTION_TIMEOUT_SECONDS)
     set(CONNECTION_TIMEOUT_SECONDS 10)
 endif()
