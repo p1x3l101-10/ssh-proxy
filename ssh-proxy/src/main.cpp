@@ -38,7 +38,7 @@ int main(int c, char** v) {
   // Set up logging
   log4cpp::Appender* appender;
   if (args.count("logfile")) {
-    appender = new log4cpp::FileAppender("default", args["logFile"].as<std::string>());
+    appender = new log4cpp::FileAppender("default", args["logfile"].as<std::string>());
   } else {
     appender = new log4cpp::OstreamAppender("console", &std::cout);
   }
