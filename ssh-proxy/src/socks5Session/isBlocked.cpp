@@ -1,3 +1,4 @@
+#include "socks5Values/address.hpp"
 #include "sshProxy/socks5Session.hpp"
 #include "loggerMacro.hpp"
 #include <boost/beast/core.hpp>
@@ -21,17 +22,21 @@ boost::asio::thread_pool blockedThreadPool(4);
 
 void sshProxy::socks5Session::isBlocked(const boost::asio::any_io_executor &ex, const socks5Values::clientConnect &connection, std::function<void(const socks5Values::clientConnect&,bool)> handler) {
   auto self = shared_from_this();
-  boost::asio::post(ex, [this, self, &ex, &connection, handler = std::move(handler)](){
+  boost::asio::post(ex, [this, self, &ex, connection = std::move(connection), handler = std::move(handler)](){
     try {
-      boost::asio::post(blockedThreadPool,[this, self, &ex, &connection, handler = std::move(handler)](){
+      boost::asio::post(blockedThreadPool,[this, self, &ex, connection = std::move(connection), handler = std::move(handler)](){
         std::function<void(bool)> sendBoost = [&ex, &connection, handler = std::move(handler)](bool isBlocked){
-          boost::asio::post(ex, [&connection, &isBlocked, handler = std::move(handler)](){
-            handler(connection, isBlocked);
+          boost::asio::post(ex, [connection, &isBlocked, handler = std::move(handler)](){
+            handler(std::move(connection), isBlocked);
           });
         };
         createLogger(logger);
         auto host = connection.destinationAddress.string();
         auto port = connection.destinationPort.string();
+        // Dont try raw IP
+        if (connection.destinationAddress.type != socks5Values::addressType::DOMAIN_NAME) {
+          sendBoost(false);
+        }
         // Test for block
         if (port != "443" || port != "80") { // Not http, assume safe
           logger.debug("Not on standard http or https ports, assuming connection is safe");
