@@ -27,7 +27,7 @@ namespace sshProxy {
       void closeBoth();
       void doHandShake();
       void doRequest();
-      void connection(socks5Values::clientConnect &connection);
+      void connection(const socks5Values::clientConnect &connection);
       void isBlocked(const boost::asio::any_io_executor &ex, const socks5Values::clientConnect &connection, std::function<void(const socks5Values::clientConnect&,bool)> handler);
       void connectLocal(const socks5Values::clientConnect &connection);
       void connectSsh(const socks5Values::clientConnect &connection);

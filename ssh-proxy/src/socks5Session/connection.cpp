@@ -5,7 +5,7 @@
 
 extern bool sshReachable;
 
-void sshProxy::socks5Session::connection(socks5Values::clientConnect &connection) {
+void sshProxy::socks5Session::connection(const socks5Values::clientConnect &connection) {
   createLogger(logger);
   // Make sure that the SSH server is still on
   if (!sshReachable || ssh_is_connected(session->getCSession()) == 0) {
