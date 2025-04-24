@@ -30,6 +30,9 @@ endif()
 if(NOT TEST_PROXY)
     set(TEST_PROXY false)
 endif()
+if(NOT SPOOF_USERAGENT)
+    set(SPOOF_USERAGENT "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:137.0) Gecko/20100101 Firefox/137.0")
+endif()
 build(
     BINARY ssh-proxy
     LIBRARIES
