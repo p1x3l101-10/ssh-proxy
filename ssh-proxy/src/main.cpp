@@ -16,6 +16,19 @@
 #include <magic_enum/magic_enum.hpp>
 #include <boost/program_options/variables_map.hpp>
 
+enum class PriorityLevelMirror { // Magic enum can understand this
+  EMERG  = 0, 
+  FATAL  = 1,
+  ALERT  = 10,
+  CRIT   = 20,
+  ERROR  = 30, 
+  WARN   = 40,
+  NOTICE = 50,
+  INFO   = 60,
+  DEBUG  = 70,
+  NOTSET = 80
+};
+
 void argProcesser(std::pair<int,char**> args);
 extern boost::program_options::variables_map args;
 
@@ -33,8 +46,20 @@ int main(int c, char** v) {
   log4cpp::Category& root = log4cpp::Category::getRoot();
   root.setAppender(appender);
   if (args.count("loglevel")) { // Set loglevel
-    auto loglevel = magic_enum::enum_cast<log4cpp::Priority::PriorityLevel>(args["loglevel"].as<std::string>(), magic_enum::case_insensitive);
-    root.setPriority(loglevel.value_or(DEFAULT_LOGLEVEL));
+    auto loglevel = args["loglevel"].as<std::string>();
+    auto newLog = magic_enum::enum_cast<PriorityLevelMirror>(loglevel);
+    if (newLog.has_value()) {
+      // Weird int math because magic_enum seems to not like values over 200 or so
+      int log = static_cast<int>(newLog.value());
+      if (log == 1) {
+        log--;
+      }
+      log = log * 10;
+      root.setPriority(static_cast<log4cpp::Priority::PriorityLevel>(log));
+    } else {
+      root.alertStream() << "Priority \"" << loglevel << "\" does not exist!";
+      return 1;
+    }
   } else {
     root.setPriority(DEFAULT_LOGLEVEL);
   }
