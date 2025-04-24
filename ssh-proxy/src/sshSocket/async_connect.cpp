@@ -1,10 +1,11 @@
 #include "sshProxy/sshSocket.hpp"
 #include <cerrno>
 #include <mutex>
-#include <thread>
+
+extern boost::asio::thread_pool sshSocketThreadPool;
 
 void sshProxy::sshSocket::async_connect(const boost::asio::ip::tcp::endpoint& endpoint, std::function<void(boost::system::error_code)> handler) {
-  std::thread([&mtx = this->mtx, &isConnected = this->isConnected, channel = this->channel, executor = this->executor, handler = std::move(handler), endpoint]() mutable {
+  boost::asio::post(sshSocketThreadPool, [&mtx = this->mtx, &isConnected = this->isConnected, channel = this->channel, executor = this->executor, handler = std::move(handler), endpoint]() mutable {
     std::scoped_lock lock(mtx);
     auto address = endpoint.address().to_string();
     auto port = endpoint.port();
@@ -20,11 +21,11 @@ void sshProxy::sshSocket::async_connect(const boost::asio::ip::tcp::endpoint& en
         handler(boost::system::error_code{ex.getCode(), boost::system::generic_category()});
       });
     }
-  }).detach();
+  });
 }
 
 void sshProxy::sshSocket::async_connect(const std::string address, const uint16_t port, std::function<void(boost::system::error_code)> handler) {
-  std::thread([&mtx = this->mtx, &isConnected = this->isConnected, channel = this->channel, executor = this->executor, handler = std::move(handler), address, port]() mutable {
+  boost::asio::post(sshSocketThreadPool, [&mtx = this->mtx, &isConnected = this->isConnected, channel = this->channel, executor = this->executor, handler = std::move(handler), address, port]() mutable {
     std::scoped_lock lock(mtx);
     try {
       // Open a connection
@@ -38,5 +39,5 @@ void sshProxy::sshSocket::async_connect(const std::string address, const uint16_
         handler(boost::system::error_code{ex.getCode(), boost::system::generic_category()});
       });
     }
-  }).detach();
+  });
 }

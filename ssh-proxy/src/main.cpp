@@ -32,7 +32,7 @@ enum class PriorityLevelMirror { // Magic enum can understand this
 void argProcesser(std::pair<int,char**> args);
 extern boost::program_options::variables_map args;
 extern boost::asio::thread_pool blockedThreadPool;
-extern boost::asio::thread_pool serverThreadPool;
+extern boost::asio::thread_pool sshSocketThreadPool;
 std::function<void()> emergencyShutdown;
 
 int main(int c, char** v) {
@@ -84,7 +84,7 @@ int main(int c, char** v) {
         // Something wants us to stop gracefully, so we shall
         logger.info("Please wait, cleaning up...");
         blockedThreadPool.join();
-        serverThreadPool.join();
+        sshSocketThreadPool.join();
         workGuard.reset();
         gracefulShutdown = true;
         ctx.stop();
