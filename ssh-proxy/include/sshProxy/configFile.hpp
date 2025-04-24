@@ -14,7 +14,6 @@ namespace sshProxy {
         std::string keyFile;
       };
       struct configStruct {
-        std::string clientAddr;
         int clientPort;
         bool openAll;
         bool compress;

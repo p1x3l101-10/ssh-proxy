@@ -3,3 +3,8 @@ username="proxyUser"
 ipAddr="127.0.0.1"
 port=22
 keyFile="__HOME__/.ssh/id_ed25519.proxy"
+
+[config]
+clientPort=1080
+openAll=false
+compress=false
