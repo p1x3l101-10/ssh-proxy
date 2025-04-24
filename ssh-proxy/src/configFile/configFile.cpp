@@ -32,8 +32,11 @@ sshProxy::configFile::configFile(std::filesystem::path rawConfigFile) {
   try {
     logger.info("Loading system config file: " + sysConfigFile.string());
     toml::table sys = toml::parse_file(sysConfigFile.string());
-    logger.info("Loading admin config file: " + configFile.string());
-    toml::table cfg = toml::parse_file(configFile.string());
+    toml::table cfg;
+    if (std::filesystem::exists(configFile)) {
+      logger.info("Loading admin config file: " + configFile.string());
+      cfg = toml::parse_file(configFile.string());
+    }
     logger.debug("Setting internal configuration");
     connection = {
       cfg.at_path("connection.username").value_or(sys.at_path("connection.username").ref<string>()),

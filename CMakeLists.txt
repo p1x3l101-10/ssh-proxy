@@ -51,7 +51,7 @@ install(
 install(
     FILES "${CMAKE_CURRENT_SOURCE_DIR}/ssh-proxy/default.toml"
     RENAME "config.toml"
-    DESTINATION "${CMAKE_INSTALL_SYSCONFDIR}/${CMAKE_INSTALL_LIBDIR}"
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/${CMAKE_PROJECT_NAME}"
 )
 
 # Mandoc, also generate from `--help`
