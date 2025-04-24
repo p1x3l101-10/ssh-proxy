@@ -7,6 +7,7 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <regex>
 #include <string>
+#include "config.hpp"
 
 namespace beast = boost::beast;
 namespace http = beast::http;
@@ -14,6 +15,8 @@ namespace net = boost::asio;
 using tcp = net::ip::tcp;
 
 bool sshProxy::socks5Session::isBlocked(std::string host) {
+  return TEST_PROXY;
+  /*
   createLogger(logger);
   try {
     net::io_context ioc;
@@ -57,4 +60,5 @@ bool sshProxy::socks5Session::isBlocked(std::string host) {
     logger.warn("Could not detect if site is blocked, assuming worst case");
     return true;
   }
+  */
 }

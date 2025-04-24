@@ -16,8 +16,19 @@ find_package(PkgConfig 2.4.3 REQUIRED)
 pkg_check_modules(tomlplusplus REQUIRED IMPORTED_TARGET tomlplusplus)
 pkg_check_modules(log4cpp REQUIRED IMPORTED_TARGET log4cpp)
 
-set(CONNECTION_TIMEOUT_SECONDS 10)
-set(DEFAULT_LOGLEVEL "DEBUG")
+if(NOT CONNECTION_TIMEOUT_SECONDS)
+    set(CONNECTION_TIMEOUT_SECONDS 10)
+endif()
+if(NOT DEFAULT_LOGLEVEL)
+    if(("${CMAKE_BUILD_TYPE}" STREQUAL "Debug") OR ("${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo"))
+        set(DEFAULT_LOGLEVEL "DEBUG")
+    else()
+        set(DEFAULT_LOGLEVEL "INFO")
+    endif()
+endif()
+if(NOT TEST_PROXY)
+    set(TEST_PROXY false)
+endif()
 build(
     BINARY ssh-proxy
     LIBRARIES PkgConfig::tomlplusplus Boost::process ssh PkgConfig::log4cpp magic_enum::magic_enum Boost::system Boost::regex Boost::program_options
