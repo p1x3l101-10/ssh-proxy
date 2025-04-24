@@ -8,6 +8,7 @@
   - [x] Make a man page
   - [x] Install a dummy config file for the user to use
   - [x] Show build settings
+  - [ ] Ssh compression
   - [ ] Account for the ssh server being down (Ducktape and superglue, does not work half the time)
 - [ ] Config file
   - [ ] Use the new standard of having a defaults file, and a user file
