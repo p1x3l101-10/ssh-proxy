@@ -111,7 +111,12 @@ int main(int c, char** v) {
     sshProxy::socks5Server server(ctx, config, session); // Start server
 
     logger.debug("Starting main loop");
-    ctx.run();
+    try {
+      ctx.run();
+    } catch (...) {
+      emergencyShutdown();
+      throw;
+    }
     if (doingGracefulShutdown) {
       root.info("Goodbye");
       root.shutdown();
