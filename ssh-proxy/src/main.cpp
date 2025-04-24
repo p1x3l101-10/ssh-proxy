@@ -84,11 +84,7 @@ int main(int ac, char** av) {
   root.setAppender(appender);
   if (vm.count("loglevel")) { // Set loglevel
     auto loglevel = magic_enum::enum_cast<log4cpp::Priority::PriorityLevel>(vm["loglevel"].as<std::string>());
-    if (loglevel.has_value()) {
-      root.setPriority(loglevel.value());
-    } else {
-      root.setPriority(DEFAULT_LOGLEVEL);
-    }
+    root.setPriority(loglevel.value_or(DEFAULT_LOGLEVEL));
   } else {
     root.setPriority(DEFAULT_LOGLEVEL);
   }
