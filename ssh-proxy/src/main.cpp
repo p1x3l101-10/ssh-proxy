@@ -31,6 +31,9 @@ enum class PriorityLevelMirror { // Magic enum can understand this
 
 void argProcesser(std::pair<int,char**> args);
 extern boost::program_options::variables_map args;
+extern boost::asio::thread_pool blockedThreadPool;
+extern boost::asio::thread_pool serverThreadPool;
+std::function<void()> emergencyShutdown;
 
 int main(int c, char** v) {
   // Process args
@@ -80,20 +83,21 @@ int main(int c, char** v) {
       [&](auto, auto){
         // Something wants us to stop gracefully, so we shall
         logger.info("Please wait, cleaning up...");
-        gracefulShutdown = true;
+        blockedThreadPool.join();
+        serverThreadPool.join();
         workGuard.reset();
+        gracefulShutdown = true;
         ctx.stop();
       }
     );
     boost::asio::signal_set ungracefulSignals(ctx, SIGUSR2);
-    ungracefulSignals.async_wait(
-      [&](auto, auto) {
-        // Stop as an error
-        logger.info("Freeing needed resources before emergency shutdown...");
-        workGuard.reset();
-        ctx.stop();
-      }
-    );
+    emergencyShutdown = [&logger,&workGuard,&ctx](){
+      // Stop as an error
+      logger.info("Freeing needed resources before emergency shutdown...");
+      workGuard.reset();
+      ctx.stop();
+    };
+    ungracefulSignals.async_wait([](auto, auto){emergencyShutdown();});
     // Read the config
     logger.debug("Reading config file");
     std::string configFile = DEFAULT_ADMIN_CONFIG_PATH;
