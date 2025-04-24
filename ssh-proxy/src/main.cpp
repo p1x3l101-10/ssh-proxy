@@ -1,6 +1,4 @@
 #include "config.hpp"
-#include "buildinfo.hpp"
-#include "license.h"
 #include "sshProxy/configFile.hpp"
 #include "sshProxy/createSession.hpp"
 #include "sshProxy/loggerLayout.hpp"
@@ -17,73 +15,26 @@
 #include <log4cpp/Priority.hh>
 #include <memory>
 #include <magic_enum/magic_enum.hpp>
-#include <boost/program_options.hpp>
+#include <boost/program_options/variables_map.hpp>
 
-namespace po = boost::program_options;
+void argProcesser(std::pair<int,char**> args);
+extern boost::program_options::variables_map args;
 
-int main(int ac, char** av) {
+int main(int c, char** v) {
   // Process args
-  po::options_description desc("Allowed options");
-  desc.add_options()
-    ("help", "prints this help message")
-    ("version", "print the version info")
-    ("license", "print the full license info for this program")
-    ("config", po::value<std::string>(), "path to config file")
-    ("logfile", po::value<std::string>(), "path to log file")
-    ("loglevel", po::value<std::string>(), "minimum loglevel to use")
-    ("buildinfo", "the config values used to build this binary")
-    ("daemon", "run the daemon")
-  ;
-  po::variables_map vm;
-  try {
-    po::store(po::parse_command_line(ac, av, desc), vm);
-  } catch (po::unknown_option &uo) {
-    std::cerr << uo.what() << "\n"
-         << desc << std::endl;
-    return 1;
-  }
-  // Fail fast if nothing is called
-  if (vm.empty()) {
-    std::cerr << desc << std::endl;
-    return 1;
-  }
-  // Arg options before logging
-  if (vm.count("help")) {
-    std::cout << desc << std::endl;
-    return 0;
-  }
-  if (vm.count("version")) {
-    std::cout << NAME << " (version: " << VERSION << ")\n"
-              << DESCRIPTION << "\n"
-              << HOMEPAGE_URL << "\n"
-              << "\tCopyright 2025 Scott Blatt, SPDX short identifier: BSD-3-Clause" << std::endl;
-    return 0;
-  }
-  if (vm.count("license")) {
-    std::cout << NAME << " (version: " << VERSION << "):\n"
-              << LICENSE_TEXT << std::endl;
-              return 0;
-  }
-  if (vm.count("buildinfo")) {
-    std::cout << "Build config: ";
-    for (const auto& config : ::configInfo) {
-      std::cout << "\n\t" << config.first << "=" << config.second;
-    }
-    std::cout << std::endl;
-    return 0;
-  }
+  argProcesser({c, v});
   // Set up logging
   log4cpp::Appender* appender;
-  if (vm.count("logfile")) {
-    appender = new log4cpp::FileAppender("default", vm["logFile"].as<std::string>());
+  if (args.count("logfile")) {
+    appender = new log4cpp::FileAppender("default", args["logFile"].as<std::string>());
   } else {
     appender = new log4cpp::OstreamAppender("console", &std::cout);
   }
   appender->setLayout(new sshProxy::loggerLayout());
   log4cpp::Category& root = log4cpp::Category::getRoot();
   root.setAppender(appender);
-  if (vm.count("loglevel")) { // Set loglevel
-    auto loglevel = magic_enum::enum_cast<log4cpp::Priority::PriorityLevel>(vm["loglevel"].as<std::string>());
+  if (args.count("loglevel")) { // Set loglevel
+    auto loglevel = magic_enum::enum_cast<log4cpp::Priority::PriorityLevel>(args["loglevel"].as<std::string>(), magic_enum::case_insensitive);
     root.setPriority(loglevel.value_or(DEFAULT_LOGLEVEL));
   } else {
     root.setPriority(DEFAULT_LOGLEVEL);
@@ -92,7 +43,7 @@ int main(int ac, char** av) {
   log4cpp::Category& logger = log4cpp::Category::getInstance(NAME".main");
   logger.debug("Hierarchical application logging set up.");
 
-  if (vm.count("daemon")) {
+  if (args.count("daemon")) {
     // Start a context
     boost::asio::io_context ctx;
     auto workGuard = boost::asio::make_work_guard(ctx); // Keep context alive even when idling
@@ -122,9 +73,9 @@ int main(int ac, char** av) {
     // Read the config
     logger.debug("Reading config file");
     std::string configFile = DEFAULT_ADMIN_CONFIG_PATH;
-    if (vm.count("config")) {
+    if (args.count("config")) {
       logger.debug("Loading config specified on commandline");
-      configFile = vm["config"].as<std::string>();
+      configFile = args["config"].as<std::string>();
     }
     std::shared_ptr<sshProxy::configFile> config(new sshProxy::configFile(configFile));
 
