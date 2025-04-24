@@ -33,6 +33,9 @@ endif()
 if(NOT SPOOF_USERAGENT)
     set(SPOOF_USERAGENT "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:137.0) Gecko/20100101 Firefox/137.0")
 endif()
+if(NOT BLOCK_TIMEOUT_SECONDS)
+    set(BLOCK_TIMEOUT_SECONDS 3)
+endif()
 build(
     BINARY ssh-proxy
     LIBRARIES

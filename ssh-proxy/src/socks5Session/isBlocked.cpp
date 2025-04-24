@@ -9,7 +9,6 @@
 #include <fstream>
 #include <regex>
 #include <string>
-#include <nlohmann/json.hpp>
 #include "config.hpp"
 #include "socks5Values/clientConnect.hpp"
 
@@ -17,7 +16,6 @@ namespace beast = boost::beast;
 namespace http = beast::http;
 namespace net = boost::asio;
 using tcp = net::ip::tcp;
-using nlohmann::json;
 boost::asio::thread_pool blockedThreadPool(4);
 
 void sshProxy::socks5Session::isBlocked(const boost::asio::any_io_executor &ex, const socks5Values::clientConnect &connection, std::function<void(const socks5Values::clientConnect&,bool)> handler) {
@@ -33,12 +31,13 @@ void sshProxy::socks5Session::isBlocked(const boost::asio::any_io_executor &ex, 
         createLogger(logger);
         auto host = connection.destinationAddress.string();
         auto port = connection.destinationPort.string();
+        int portNum = static_cast<int>(connection.destinationPort.portNum);
         // Dont try raw IP
         if (connection.destinationAddress.type != socks5Values::addressType::DOMAIN_NAME) {
           sendBoost(false);
         }
         // Test for block
-        if (port != "443" || port != "80") { // Not http, assume safe
+        if (portNum != 443 && portNum != 80) { // Not http, assume safe
           logger.debug("Not on standard http or https ports, assuming connection is safe");
           sendBoost(false);
           return;
@@ -49,8 +48,17 @@ void sshProxy::socks5Session::isBlocked(const boost::asio::any_io_executor &ex, 
           tcp::resolver resolver(ioc);
           beast::tcp_stream stream(ioc);
 
+          // Start the timeout clock
+          boost::asio::steady_timer connectTimer(ioc);
+          connectTimer.expires_after(std::chrono::seconds(BLOCK_TIMEOUT));
+          connectTimer.async_wait([this, self](boost::system::error_code ec){
+            createLogger(logger);
+            logger.warn("Timed out");
+            throw;
+          });
+
           // Resolve domain
-          auto const results = resolver.resolve(host, port);
+          auto const results = resolver.resolve(host, "80");
           stream.connect(results);
 
           // Build HTTP GET request
@@ -69,11 +77,13 @@ void sshProxy::socks5Session::isBlocked(const boost::asio::any_io_executor &ex, 
           // Close the connection
           beast::error_code ec;
           stream.socket().shutdown(tcp::socket::shutdown_both, ec); //NOLINT
+          connectTimer.cancel(); // We are done now
 
           // Dump responce for lookup
-          if (host.contains("discord.com")) {
+          if (connection.destinationAddress.string().contains("chatgpt")) {
+            logger.debug("Dumping temp reply");
             std::ofstream file;
-            file.open("discord.html", std::ios::trunc);
+            file.open("dump.html", std::ios::trunc);
             file << res.body() << "\n";
             file.close();
           }
@@ -81,19 +91,13 @@ void sshProxy::socks5Session::isBlocked(const boost::asio::any_io_executor &ex, 
           // Look for LS categories
           std::string body = res.body();
           std::smatch match;
-          std::regex titleRegex("<textarea id='categories' class='hidden'>(.*?)</textarea>", std::regex_constants::icase);
+          std::regex titleRegex("<script type=\\'text/javascript\\'>(.*?)</script></head></html>", std::regex_constants::icase);
           if (std::regex_search(body, match, titleRegex)) {
-            std::string cats = match[1].str();
-            if (json::accept(cats)) {
-              // Valid json, parsing...
-              json test(cats);
-              // Test if matches what the lightspeed categories look like
-              if (test.is_structured()) {
-                if (test["67"].is_string()) { // "67" is a catigory number (when writing, it is "access-denied")
-                  sendBoost(true);
-                  return;
-                }
-              }
+            std::string script = match[1].str();
+            logger.debugStream() << script;
+            if (script.contains("location.replace('https://relay-proxy.norman.k12.ok.us:8443/redirect?x=")) { // Test for redirect
+              sendBoost(true);
+              return;
             }
           }
           sendBoost(false);
