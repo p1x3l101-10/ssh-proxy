@@ -1,4 +1,5 @@
 #include "config.hpp"
+#include "buildinfo.hpp"
 #include "license.h"
 #include "sshProxy/configFile.hpp"
 #include "sshProxy/createSession.hpp"
@@ -30,6 +31,7 @@ int main(int ac, char** av) {
     ("config", po::value<std::string>(), "path to config file")
     ("logfile", po::value<std::string>(), "path to log file")
     ("loglevel", po::value<std::string>(), "minimum loglevel to use")
+    ("buildinfo", "the config values used to build this binary")
     ("daemon", "run the daemon")
   ;
   po::variables_map vm;
@@ -61,6 +63,14 @@ int main(int ac, char** av) {
     std::cout << CMAKE_PROJECT_NAME << " (version: " << CMAKE_PROJECT_VERSION << "):\n"
               << LICENSE_TEXT << std::endl;
               return 0;
+  }
+  if (vm.count("buildinfo")) {
+    std::cout << "Build config: ";
+    for (const auto& config : ::configInfo) {
+      std::cout << "\n\t" << config.first << "=" << config.second;
+    }
+    std::cout << std::endl;
+    return 0;
   }
   // Set up logging
   log4cpp::Appender* appender;
