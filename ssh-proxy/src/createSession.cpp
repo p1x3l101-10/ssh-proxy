@@ -1,5 +1,6 @@
 #include "sshProxy/createSession.hpp"
 #include "config.hpp"
+#include <cstddef>
 #include <memory>
 #include <string>
 
@@ -33,6 +34,7 @@ std::shared_ptr<ssh::Session> sshProxy::createSession (std::shared_ptr<configFil
     }
     sshReachable = true;
 
+      
     if (! config->getConnection().keyFile.empty()) {
       logger.info("Authorizing using configured key");
       ssh_key key;
@@ -50,10 +52,17 @@ std::shared_ptr<ssh::Session> sshProxy::createSession (std::shared_ptr<configFil
         exit(1);
       }
     }
+
     logger.debug("Session created");
     return session;
   } catch (ssh::SshException& e) {
-    logger.fatal("SSH Error: " + e.getError());
-    exit(e.getCode());
+    if (strcmp(e.getError().c_str(), "Connection refused") == 0) {
+      logger.error("SSH Connection refused, expect blocks");
+      sshReachable = false;
+      return nullptr;
+    } else {
+      logger.emerg("SSH Error: " + e.getError());
+      exit(e.getCode());
+    }
   }
 }
