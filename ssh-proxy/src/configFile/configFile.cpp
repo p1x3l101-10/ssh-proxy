@@ -61,8 +61,8 @@ sshProxy::configFile::configFile(std::filesystem::path rawConfigFile) {
     std::sregex_iterator end;
     for (std::sregex_iterator i = begin; i != end; i++) {
       std::smatch match = *i;
-      string replace = shortcuts[match.str()];
-      connection.keyFile.replace(match.position() - 2, match.length() + 4, replace); // Account for the underscores before and after
+      string replace = shortcuts[match[1].str()];
+      connection.keyFile.replace(match.position(), match.length(), replace); // Account for the underscores before and after
     }
   }
 };
