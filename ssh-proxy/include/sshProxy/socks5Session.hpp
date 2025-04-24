@@ -15,7 +15,7 @@ namespace sshProxy {
     private:
       std::array<enum socks5Values::authTypes, 1> supportedAuthMethods = { socks5Values::authTypes::NO_AUTH };
       socks5Values::authTypes selectAuthMethod(socks5Values::greeting greeting);
-      log4cpp::Category& logger = log4cpp::Category::getInstance(CMAKE_PROJECT_NAME".socks5Session");
+      log4cpp::Category& logger = log4cpp::Category::getInstance(NAME".socks5Session");
       std::shared_ptr<configFile> config = nullptr;
       boost::asio::ip::tcp::socket clientSocket;
       std::shared_ptr<asyncStream> remoteSocket;

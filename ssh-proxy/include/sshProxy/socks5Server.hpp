@@ -12,7 +12,7 @@
 namespace sshProxy {
   class socks5Server {
     private:
-      log4cpp::Category& logger = log4cpp::Category::getInstance(CMAKE_PROJECT_NAME".socks5Server");
+      log4cpp::Category& logger = log4cpp::Category::getInstance(NAME".socks5Server");
       std::shared_ptr<configFile> config;
       std::shared_ptr<ssh::Session> session;
       void acceptConnection();

@@ -20,7 +20,7 @@ namespace sshProxy {
         bool compress;
       };
     private:
-      log4cpp::Category& logger = log4cpp::Category::getInstance(CMAKE_PROJECT_NAME".configFile");
+      log4cpp::Category& logger = log4cpp::Category::getInstance(NAME".configFile");
       connectionStruct connection;
       configStruct config;
     public:

@@ -53,14 +53,14 @@ int main(int ac, char** av) {
     return 0;
   }
   if (vm.count("version")) {
-    std::cout << CMAKE_PROJECT_NAME << " (version: " << CMAKE_PROJECT_VERSION << ")\n"
-              << CMAKE_PROJECT_DESCRIPTION << "\n"
-              << CMAKE_PROJECT_HOMEPAGE_URL << "\n"
+    std::cout << NAME << " (version: " << VERSION << ")\n"
+              << DESCRIPTION << "\n"
+              << HOMEPAGE_URL << "\n"
               << "\tCopyright 2025 Scott Blatt, SPDX short identifier: BSD-3-Clause" << std::endl;
     return 0;
   }
   if (vm.count("license")) {
-    std::cout << CMAKE_PROJECT_NAME << " (version: " << CMAKE_PROJECT_VERSION << "):\n"
+    std::cout << NAME << " (version: " << VERSION << "):\n"
               << LICENSE_TEXT << std::endl;
               return 0;
   }
@@ -89,7 +89,7 @@ int main(int ac, char** av) {
     root.setPriority(DEFAULT_LOGLEVEL);
   }
   root.debug("Logging initialized");
-  log4cpp::Category& logger = log4cpp::Category::getInstance(CMAKE_PROJECT_NAME".main");
+  log4cpp::Category& logger = log4cpp::Category::getInstance(NAME".main");
   logger.debug("Hierarchical application logging set up.");
 
   if (vm.count("daemon")) {
@@ -121,7 +121,7 @@ int main(int ac, char** av) {
     );
     // Read the config
     logger.debug("Reading config file");
-    std::string configFile = CMAKE_INSTALL_SYSCONFDIR"/ssh-proxy.toml";
+    std::string configFile = DEFAULT_ADMIN_CONFIG_PATH;
     if (vm.count("config")) {
       logger.debug("Loading config specified on commandline");
       configFile = vm["config"].as<std::string>();

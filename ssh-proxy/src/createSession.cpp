@@ -6,7 +6,7 @@
 bool sshReachable = true;
 
 std::shared_ptr<ssh::Session> sshProxy::createSession (std::shared_ptr<configFile> config) {
-  log4cpp::Category& logger = log4cpp::Category::getInstance(CMAKE_PROJECT_NAME".createSession");
+  log4cpp::Category& logger = log4cpp::Category::getInstance(NAME".createSession");
   try {
     logger.info("Creating Session");
     std::shared_ptr<ssh::Session> session(new ssh::Session);
