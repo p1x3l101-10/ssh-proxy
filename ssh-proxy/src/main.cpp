@@ -82,9 +82,16 @@ int main(int c, char** v) {
     boost::asio::signal_set gracefulSignals(ctx, SIGINT, SIGTERM);
     gracefulShutdown = [&doingGracefulShutdown,&logger,&workGuard,&ctx](){
       // Something wants us to stop gracefully, so we shall
+      boost::asio::steady_timer connectTimer(ctx);
+      connectTimer.expires_after(std::chrono::seconds(5));
+      connectTimer.async_wait([&logger](boost::system::error_code ec){
+        logger.warn("Took too long to shut down");
+        emergencyShutdown();
+      });
       logger.info("Please wait, cleaning up...");
       blockedThreadPool.join();
       sshSocketThreadPool.join();
+      connectTimer.cancel(); // Done waiting
       workGuard.reset();
       doingGracefulShutdown = true;
       ctx.stop();
