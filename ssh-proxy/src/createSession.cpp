@@ -41,14 +41,14 @@ std::shared_ptr<ssh::Session> sshProxy::createSession (std::shared_ptr<configFil
       ssh_pki_import_privkey_file(config->getConnection().keyFile.c_str(), nullptr, nullptr, nullptr, &key);
       int ret = session->userauthPublickey(key);
       if (ret != SSH_AUTH_SUCCESS) {
-        logger.fatal("Failed to authorize with public key");
+        logger.alert("Failed to authorize with public key");
         exit(1);
       }
     } else {
       logger.info("Attempting to detect key");
       int ret = session->userauthPublickeyAuto();
       if (ret != SSH_AUTH_SUCCESS) {
-        logger.fatal("Failed to authorize with public key");
+        logger.alert("Failed to authorize with public key");
         exit(1);
       }
     }
