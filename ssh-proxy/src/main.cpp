@@ -34,6 +34,7 @@ extern boost::program_options::variables_map args;
 extern boost::asio::thread_pool blockedThreadPool;
 extern boost::asio::thread_pool sshSocketThreadPool;
 std::function<void()> emergencyShutdown;
+std::function<void()> gracefulShutdown;
 
 int main(int c, char** v) {
   // Process args
@@ -77,19 +78,18 @@ int main(int c, char** v) {
   
     // Register signal handler into context
     logger.debug("Registering signal handlers");
-    std::atomic<bool> gracefulShutdown = false;
+    std::atomic<bool> doingGracefulShutdown = false;
     boost::asio::signal_set gracefulSignals(ctx, SIGINT, SIGTERM);
-    gracefulSignals.async_wait(
-      [&](auto, auto){
-        // Something wants us to stop gracefully, so we shall
-        logger.info("Please wait, cleaning up...");
-        blockedThreadPool.join();
-        sshSocketThreadPool.join();
-        workGuard.reset();
-        gracefulShutdown = true;
-        ctx.stop();
-      }
-    );
+    gracefulShutdown = [&doingGracefulShutdown,&logger,&workGuard,&ctx](){
+      // Something wants us to stop gracefully, so we shall
+      logger.info("Please wait, cleaning up...");
+      blockedThreadPool.join();
+      sshSocketThreadPool.join();
+      workGuard.reset();
+      doingGracefulShutdown = true;
+      ctx.stop();
+    };
+    gracefulSignals.async_wait([](auto, auto){gracefulShutdown();});
     boost::asio::signal_set ungracefulSignals(ctx, SIGUSR2);
     emergencyShutdown = [&logger,&workGuard,&ctx](){
       // Stop as an error
@@ -112,7 +112,7 @@ int main(int c, char** v) {
 
     logger.debug("Starting main loop");
     ctx.run();
-    if (gracefulShutdown) {
+    if (doingGracefulShutdown) {
       root.info("Goodbye");
       root.shutdown();
       return 0;
