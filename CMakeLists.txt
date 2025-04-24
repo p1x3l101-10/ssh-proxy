@@ -25,3 +25,14 @@ build(
     INSTALL_TARGET
     PUBLIC_COMPILE_OPTIONS "-fexperimental-library"
 )
+
+install(
+    FILES "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE" 
+    TYPE DOC 
+)
+
+install(
+    FILES "${CMAKE_CURRENT_SOURCE_DIR}/ssh-proxy/sample.toml"
+    RENAME "${CMAKE_PROJECT_NAME}.toml"
+    TYPE SYSCONF
+)
