@@ -7,16 +7,17 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <regex>
 #include <string>
+#include <nlohmann/json.hpp>
 #include "config.hpp"
 
 namespace beast = boost::beast;
 namespace http = beast::http;
 namespace net = boost::asio;
 using tcp = net::ip::tcp;
+using nlohmann::json;
 
 bool sshProxy::socks5Session::isBlocked(std::string host) {
   return TEST_PROXY;
-  /*
   createLogger(logger);
   try {
     net::io_context ioc;
@@ -44,21 +45,27 @@ bool sshProxy::socks5Session::isBlocked(std::string host) {
     beast::error_code ec;
     stream.socket().shutdown(tcp::socket::shutdown_both, ec); //NOLINT
 
-    // Look for title "Blocked"
+    // Look for LS categories
     std::string body = res.body();
     std::smatch match;
-    std::regex titleRegex("<title>(.*?)</title>", std::regex_constants::icase);
+    std::regex titleRegex("<textarea id='categories' class='hidden'>(.*?)</textarea>", std::regex_constants::icase);
     if (std::regex_search(body, match, titleRegex)) {
-      std::string title = match[1].str();
-      std::transform(title.begin(), title.end(), title.begin(), ::tolower);
-      return title.find("blocked") != std::string::npos;
+      std::string cats = match[1].str();
+      if (json::accept(cats)) {
+        // Valid json, parsing...
+        json test(cats);
+        // Test if matches what the lightspeed categories look like
+        if (test.is_structured()) {
+          if (test["67"].is_string()) { // "67" is a catigory number (when writing, it is "access-denied")
+            return true;
+          }
+        }
+      }
     }
 
     return false;
   } catch (...) {
-    // Could not connect or resolve — blocked for safety
     logger.warn("Could not detect if site is blocked, assuming worst case");
     return true;
   }
-  */
 }
