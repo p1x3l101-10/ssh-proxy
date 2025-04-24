@@ -36,7 +36,7 @@ std::shared_ptr<ssh::Session> sshProxy::createSession (std::shared_ptr<configFil
 
       
     if (! config->getConnection().keyFile.empty()) {
-      logger.info("Authorizing using configured key");
+      logger.infoStream() << "Authorizing with ssh key: " << config->getConnection().keyFile;
       ssh_key key;
       ssh_pki_import_privkey_file(config->getConnection().keyFile.c_str(), nullptr, nullptr, nullptr, &key);
       int ret = session->userauthPublickey(key);
