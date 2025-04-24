@@ -36,3 +36,30 @@ install(
     RENAME "${CMAKE_PROJECT_NAME}.toml"
     TYPE SYSCONF
 )
+
+# Mandoc, also generate from `--help`
+add_custom_command(
+  OUTPUT ${CMAKE_BINARY_DIR}/help.out
+  COMMAND ssh-proxy --help > help.out
+  DEPENDS ssh-proxy
+  COMMENT "Generating help output for man page"
+)
+add_custom_command(
+  OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/.gen/${CMAKE_PROJECT_NAME}/man.8"
+  COMMAND ${CMAKE_COMMAND} -E echo_append ""
+  COMMAND ${CMAKE_COMMAND} -DHELP_FILE=${CMAKE_BINARY_DIR}/help.out
+                          -DTEMPLATE=${CMAKE_CURRENT_BINARY_DIR}/.gen/${CMAKE_PROJECT_NAME}/man.8.template
+                          -DOUTPUT=${CMAKE_CURRENT_BINARY_DIR}/.gen/${CMAKE_PROJECT_NAME}/man.8
+                          -P ${CMAKE_SOURCE_DIR}/cmake/generate_man.cmake
+  DEPENDS ${CMAKE_BINARY_DIR}/help.out
+  COMMENT "Generating man page"
+)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/${CMAKE_PROJECT_NAME}/man.8.in ${CMAKE_CURRENT_BINARY_DIR}/.gen/${CMAKE_PROJECT_NAME}/man.8.template @ONLY)
+add_custom_target(generate_man ALL
+    DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/.gen/${CMAKE_PROJECT_NAME}/man.8"
+)
+install(
+    FILES ${CMAKE_CURRENT_BINARY_DIR}/.gen/${CMAKE_PROJECT_NAME}/man.8
+    RENAME "${CMAKE_PROJECT_NAME}.8"
+    TYPE MAN
+)

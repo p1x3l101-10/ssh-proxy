@@ -1,0 +1,20 @@
+.TH "@CMAKE_PROJECT_NAME@" 8 "April 2025" "v@CMAKE_PROJECT_VERSION@" "System administration commands"
+.SH NAME
+ssh-proxy
+.SH SYNOPSIS
+@CMAKE_PROJECT_DESCRIPTION@
+.SH DESCRIPTION
+This current iteration does a couple of things:
+- Opens a socks5 proxy on the configured port
+- Detects if a site is blocked or not
+- If a site is not blocked, it will just relay the traffic as if it was not there
+- If a site is blocked, it will proxy the traffic over an ssh server
+.SH OPTIONS
+__HELP__
+.SH EXAMPLES
+.B ssh-proxy --license
+Print the license
+.SH SEE ALSO
+ssh(1)
+.SH AUTHOR
+Pixel
