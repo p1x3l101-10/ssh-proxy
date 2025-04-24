@@ -1,5 +1,4 @@
 # ssh-proxy (WIP)
----
 A refactor of a refactor of a refactor. I never know when to stop...
 
 ## What is it?
