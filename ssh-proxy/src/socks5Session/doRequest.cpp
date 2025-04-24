@@ -100,6 +100,7 @@ void sshProxy::socks5Session::doRequest() {
                 } else {
                   throw; // Not my error
                 }
+                std::unreachable();
               }
             }();
             connection(connect);
