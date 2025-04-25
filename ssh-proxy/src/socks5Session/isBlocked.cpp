@@ -6,7 +6,6 @@
 #include <boost/beast/version.hpp>
 #include <boost/asio/connect.hpp>
 #include <boost/asio/ip/tcp.hpp>
-#include <fstream>
 #include <regex>
 #include <string>
 #include "config.hpp"
