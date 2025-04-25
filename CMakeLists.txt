@@ -84,7 +84,7 @@ endif()
 
 install(
     FILES "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE" 
-    TYPE DOC 
+    DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/${PROGRAM_NAME}"
 )
 
 install(
