@@ -5,7 +5,9 @@
 #include <log4cpp/Category.hh>
 #include <memory>
 #include <boost/asio.hpp>
+#ifdef BUILD_WITH_SSH
 #include <libssh/libsshpp.hpp>
+#endif
 #include "socks5Values/clientConnect.hpp"
 #include "sshProxy/configFile.hpp"
 #include "asyncStream.hpp"
@@ -21,8 +23,13 @@ namespace sshProxy {
       std::shared_ptr<asyncStream> remoteSocket;
       boost::asio::ip::tcp::resolver resolver;
       boost::asio::steady_timer connectTimer;
+      #ifdef BUILD_WITH_SSH
       std::shared_ptr<ssh::Session> session = nullptr;
       std::shared_ptr<ssh::Channel> channel = nullptr;
+      #else
+      std::shared_ptr<void> session = nullptr;
+      std::shared_ptr<void> channel = nullptr;
+      #endif
       std::atomic<bool> usingSsh{false};
       void closeBoth();
       void doHandShake();
@@ -35,7 +42,11 @@ namespace sshProxy {
       void startRemoteToClientRelay();
       void errorhander(boost::system::error_code &ec, const std::string loggerName);
     public:
+      #ifdef BUILD_WITH_SSH
       socks5Session(boost::asio::ip::tcp::socket clientSocket, std::shared_ptr<ssh::Session> session);
+      #else
+      socks5Session(boost::asio::ip::tcp::socket clientSocket);
+      #endif
       void start() { doHandShake(); };
   };
 }

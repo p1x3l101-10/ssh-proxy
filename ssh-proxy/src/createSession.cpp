@@ -1,3 +1,5 @@
+#include "config.hpp"
+#ifdef BUILD_WITH_SSH
 #include "sshProxy/createSession.hpp"
 #include "config.hpp"
 #include <cstddef>
@@ -66,3 +68,4 @@ std::shared_ptr<ssh::Session> sshProxy::createSession (std::shared_ptr<configFil
     }
   }
 }
+#endif

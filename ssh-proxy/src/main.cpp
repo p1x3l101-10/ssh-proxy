@@ -1,6 +1,8 @@
 #include "config.hpp"
 #include "sshProxy/configFile.hpp"
+#ifdef BUILD_WITH_SSH
 #include "sshProxy/createSession.hpp"
+#endif
 #include "sshProxy/loggerLayout.hpp"
 #include "sshProxy/socks5Server.hpp"
 #include <boost/asio/io_context.hpp>
@@ -32,7 +34,9 @@ enum class PriorityLevelMirror { // Magic enum can understand this
 void argProcesser(std::pair<int,char**> args);
 extern boost::program_options::variables_map args;
 extern boost::asio::thread_pool blockedThreadPool;
+#ifdef BUILD_WITH_SSH
 extern boost::asio::thread_pool sshSocketThreadPool;
+#endif
 std::function<void()> emergencyShutdown;
 std::function<void()> gracefulShutdown;
 
@@ -90,7 +94,9 @@ int main(int c, char** v) {
       });
       logger.info("Please wait, cleaning up...");
       blockedThreadPool.join();
+      #ifdef BUILD_WITH_SSH
       sshSocketThreadPool.join();
+      #endif
       connectTimer.cancel(); // Done waiting
       workGuard.reset();
       doingGracefulShutdown = true;
@@ -114,8 +120,12 @@ int main(int c, char** v) {
     }
     std::shared_ptr<sshProxy::configFile> config(new sshProxy::configFile(configFile));
 
+    #ifdef BUILD_WITH_SSH
     auto session = sshProxy::createSession(config); // Start an ssh connection
     sshProxy::socks5Server server(ctx, config, session); // Start server
+    #else
+    sshProxy::socks5Server server(ctx, config); // Start server
+    #endif
 
     logger.debug("Starting main loop");
     try {

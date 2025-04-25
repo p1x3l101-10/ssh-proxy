@@ -1,4 +1,5 @@
 #include "sshProxy/configFile.hpp"
+#include "config.hpp"
 #include <toml++/impl/parse_error.hpp>
 #include <toml++/impl/parser.hpp>
 #include <regex>
@@ -38,16 +39,29 @@ sshProxy::configFile::configFile(std::filesystem::path rawConfigFile) {
       cfg = toml::parse_file(configFile.string());
     }
     logger.debug("Setting internal configuration");
+    #ifdef BUILD_WITH_SSH
     connection = {
       cfg.at_path("connection.username").value_or(sys.at_path("connection.username").ref<string>()),
       cfg.at_path("connection.ipAddr").value_or(sys.at_path("connection.ipAddr").ref<string>()),
       static_cast<int>(cfg.at_path("connection.port").value_or(sys.at_path("connection.port").ref<int64_t>())),
       cfg.at_path("connection.keyFile").value_or(sys.at_path("connection.keyFile").ref<string>())
     };
+    #else
+    connection = {
+      "",
+      "",
+      0,
+      ""
+    };
+    #endif
     config = {
       static_cast<int>(cfg.at_path("config.clientPort").value_or(sys.at_path("config.clientPort").ref<int64_t>())),
       cfg.at_path("config.openAll").value_or(sys.at_path("config.openAll").ref<bool>()),
+      #ifdef BUILD_WITH_SSH
       cfg.at_path("config.compress").value_or(sys.at_path("config.compress").ref<bool>())
+      #else
+      false
+      #endif
     };
   } catch (toml::parse_error& e) {
     logger.fatalStream() << "Toml parsing error!" << e.description();

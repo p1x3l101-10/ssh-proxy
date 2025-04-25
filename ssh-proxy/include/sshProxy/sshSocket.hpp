@@ -1,4 +1,6 @@
 #pragma once
+#include "config.hpp"
+#ifdef BUILD_WITH_SSH
 #include <libssh/libsshpp.hpp>
 #include <memory>
 #include <boost/asio.hpp>
@@ -39,3 +41,4 @@ namespace sshProxy {
       bool is_open() const override { return channel->isOpen(); }
   };
 }
+#endif

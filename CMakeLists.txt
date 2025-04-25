@@ -23,8 +23,9 @@ project(
 include(cmake-libs/all)
 set(CMAKE_EXPORT_COMPILE_COMMANDS true)
 
+option(BUILD_WITH_SSH "Build with ssh support (Disables core functions without)" ON)
+
 find_package(Boost 1.87.0 REQUIRED COMPONENTS process headers system regex program_options)
-find_package(libssh 0.11.1 REQUIRED)
 find_package(magic_enum 0.9.7 CONFIG REQUIRED)
 find_package(PkgConfig 2.4.3 REQUIRED)
 pkg_check_modules(tomlplusplus REQUIRED IMPORTED_TARGET tomlplusplus)
@@ -54,12 +55,16 @@ endif()
 if(NOT BLOCK_TIMEOUT_SECONDS)
     set(BLOCK_TIMEOUT_SECONDS 3)
 endif()
+if(${BUILD_WITH_SSH})
+    set(PROGRAM_NAME ${CMAKE_PROJECT_NAME})
+else()
+    set(PROGRAM_NAME "socks5Relay")
+endif()
 build(
     BINARY ssh-proxy
     LIBRARIES
         PkgConfig::tomlplusplus
         PkgConfig::log4cpp
-        ssh
         Boost::process
         Boost::system
         Boost::regex
@@ -70,6 +75,13 @@ build(
     PUBLIC_COMPILE_OPTIONS "-fexperimental-library"
 )
 
+if(${BUILD_WITH_SSH})
+    find_package(libssh 0.11.1 REQUIRED)
+    target_link_libraries(ssh-proxy PRIVATE ssh)
+else()
+    set_target_properties(ssh-proxy PROPERTIES OUTPUT_NAME "socks5Relay")
+endif()
+
 install(
     FILES "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE" 
     TYPE DOC 
@@ -78,13 +90,13 @@ install(
 install(
     FILES "${CMAKE_CURRENT_SOURCE_DIR}/ssh-proxy/sample.toml"
     RENAME "config.toml.example"
-    DESTINATION "${CMAKE_INSTALL_SYSCONFDIR}/${CMAKE_PROJECT_NAME}"
+    DESTINATION "${CMAKE_INSTALL_SYSCONFDIR}/${PROGRAM_NAME}"
 )
 
 install(
     FILES "${CMAKE_CURRENT_SOURCE_DIR}/ssh-proxy/default.toml"
     RENAME "config.toml"
-    DESTINATION "${CMAKE_INSTALL_LIBDIR}/${CMAKE_PROJECT_NAME}"
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/${PROGRAM_NAME}"
 )
 
 # Mandoc, also generate from `--help`
@@ -110,6 +122,6 @@ add_custom_target(generate_man ALL
 )
 install(
     FILES ${CMAKE_CURRENT_BINARY_DIR}/.gen/${CMAKE_PROJECT_NAME}/man.8
-    RENAME "${CMAKE_PROJECT_NAME}.8"
+    RENAME "${PROGRAM_NAME}.8"
     TYPE MAN
 )

@@ -1,3 +1,5 @@
+#include "config.hpp"
+#ifdef BUILD_WITH_SSH
 #include "sshProxy/sshSocket.hpp"
 
 extern boost::asio::thread_pool sshSocketThreadPool;
@@ -28,3 +30,4 @@ void sshProxy::sshSocket::async_write_some(boost::asio::const_buffer buf, std::f
     }
   });
 }
+#endif

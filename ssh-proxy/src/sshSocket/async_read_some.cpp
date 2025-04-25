@@ -1,3 +1,5 @@
+#include "config.hpp"
+#ifdef BUILD_WITH_SSH
 #include "sshProxy/sshSocket.hpp"
 #include "config.hpp"
 
@@ -51,3 +53,4 @@ void sshProxy::sshSocket::async_read_some(boost::asio::mutable_buffer buffer, st
     }
   });
 }
+#endif

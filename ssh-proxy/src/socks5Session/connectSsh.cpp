@@ -1,3 +1,5 @@
+#include "config.hpp"
+#ifdef BUILD_WITH_SSH
 #include "sshProxy/socks5Session.hpp"
 #include "socks5Values/connectResponce.hpp"
 #include "loggerMacro.hpp"
@@ -22,3 +24,4 @@ void sshProxy::socks5Session::connectSsh(const socks5Values::clientConnect &conn
   // Start connection
   connectLocal(connection);
 }
+#endif

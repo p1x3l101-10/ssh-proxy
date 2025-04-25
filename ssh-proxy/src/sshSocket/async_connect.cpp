@@ -1,3 +1,5 @@
+#include "config.hpp"
+#ifdef BUILD_WITH_SSH
 #include "sshProxy/sshSocket.hpp"
 #include <cerrno>
 #include <mutex>
@@ -41,3 +43,4 @@ void sshProxy::sshSocket::async_connect(const std::string address, const uint16_
     }
   });
 }
+#endif

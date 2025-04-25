@@ -1,3 +1,5 @@
+#include "config.hpp"
+#ifdef BUILD_WITH_SSH
 #include "sshProxy/sshSocket.hpp"
 #include <memory>
 
@@ -9,3 +11,4 @@ sshProxy::sshSocket::sshSocket(boost::asio::any_io_executor executor, std::share
 , channel(std::make_shared<ssh::Channel>(*sessionPtr))
 , isConnected(false)
 {}
+#endif
