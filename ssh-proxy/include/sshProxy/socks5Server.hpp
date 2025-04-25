@@ -7,7 +7,9 @@
 #include <log4cpp/LoggingEvent.hh>
 #include <memory>
 #include <boost/asio.hpp>
+#ifdef BUILD_WITH_SSH
 #include <libssh/libsshpp.hpp>
+#endif
 #include "sshProxy/configFile.hpp"
 
 namespace sshProxy {
