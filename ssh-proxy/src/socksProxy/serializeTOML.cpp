@@ -27,6 +27,8 @@ void sshProxy::socksProxy::serializeTOML(path toml) {
     socksProxy::config.sshBin = sshBin.value_or("/usr/bin/ssh");
     optional<bool> verbose = tbl["config"]["verbose"].value<bool>();
     socksProxy::config.verbose = verbose.value_or(false);
-    socksProxy::sshConf.extraArgs = tbl["sshConf"]["extraArgs"].as_array();
+    if (!!tbl.get("sshConf.extraArgs")) {
+        socksProxy::sshConf.extraArgs = *tbl["sshConf"]["extraArgs"].as_array();
+    }
     
 }

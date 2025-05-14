@@ -43,14 +43,16 @@ void sshProxy::socksProxy::generateCmd() {
         argv.push_back(sshAddr);
     }
     {
+        std::cout << "1" << std::endl;
         // Dump extra arguments
-        if (!sshConf.extraArgs->empty()) {
-            sshConf.extraArgs->for_each([&argv](toml::value<string> elem) mutable {
+        if (!sshConf.extraArgs.empty()) {
+            sshConf.extraArgs.for_each([&argv](toml::value<string> elem) mutable {
                 if (elem.is_string()) {
                     argv.push_back(elem.as_string()->get());
                 }
             });
         }
+        std::cout << "1" << std::endl;
     }
     if (socksProxy::debug) {
         std::cout << "Cmdline:" << '\t' << std::endl;

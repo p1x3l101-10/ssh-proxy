@@ -24,7 +24,7 @@ namespace sshProxy {
                 string ipAddr;
                 int port;
                 string keyFile;
-                toml::array* extraArgs;
+                toml::array extraArgs;
             };
             struct config {
                 bool verbose;
