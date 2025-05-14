@@ -58,5 +58,4 @@ void sshProxy::socksProxy::generateCmd() {
         std::cout << std::endl;
     }
     socksProxy::execCmd = argv;
-    exit(1);
 }
