@@ -38,16 +38,12 @@ void sshProxy::socksProxy::generateCmd() {
         argv.push_back(socksProxy::sshConf.keyFile);
     }
     {
-        std::cout << "1" << std::endl;
         // Dump extra arguments
-        if (!sshConf.extraArgs.empty()) {
-            sshConf.extraArgs.for_each([&argv](toml::value<string> elem) mutable {
-                if (elem.is_string()) {
-                    argv.push_back(elem.as_string()->get());
-                }
+        if (sshConf.extraArgs.is_homogeneous()) {
+            sshConf.extraArgs.for_each([&argv, &array = sshConf.extraArgs](auto&& elem) mutable {
+                argv.push_back(elem.as_string()->get());
             });
         }
-        std::cout << "1" << std::endl;
     }
     {
         string sshAddr;
@@ -62,4 +58,5 @@ void sshProxy::socksProxy::generateCmd() {
         std::cout << std::endl;
     }
     socksProxy::execCmd = argv;
+    exit(1);
 }
