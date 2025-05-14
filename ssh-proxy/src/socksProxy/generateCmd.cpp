@@ -38,11 +38,6 @@ void sshProxy::socksProxy::generateCmd() {
         argv.push_back(socksProxy::sshConf.keyFile);
     }
     {
-        string sshAddr;
-        sshAddr = socksProxy::sshConf.username + "@" + socksProxy::sshConf.ipAddr;
-        argv.push_back(sshAddr);
-    }
-    {
         std::cout << "1" << std::endl;
         // Dump extra arguments
         if (!sshConf.extraArgs.empty()) {
@@ -53,6 +48,11 @@ void sshProxy::socksProxy::generateCmd() {
             });
         }
         std::cout << "1" << std::endl;
+    }
+    {
+        string sshAddr;
+        sshAddr = socksProxy::sshConf.username + "@" + socksProxy::sshConf.ipAddr;
+        argv.push_back(sshAddr);
     }
     if (socksProxy::debug) {
         std::cout << "Cmdline:" << '\t' << std::endl;
