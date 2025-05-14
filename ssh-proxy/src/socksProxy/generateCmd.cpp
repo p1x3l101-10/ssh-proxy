@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <toml++/toml.hpp>
 
 using std::string;
 using std::vector;
@@ -40,6 +41,14 @@ void sshProxy::socksProxy::generateCmd() {
         string sshAddr;
         sshAddr = socksProxy::sshConf.username + "@" + socksProxy::sshConf.ipAddr;
         argv.push_back(sshAddr);
+    }
+    {
+        // Dump extra arguments
+        sshConf.extraArgs->for_each([&argv](toml::value<string> elem) mutable {
+            if (elem.is_string()) {
+                argv.push_back(elem.as_string()->get());
+            }
+        });
     }
     if (socksProxy::debug) {
         std::cout << "Cmdline:" << '\t' << std::endl;

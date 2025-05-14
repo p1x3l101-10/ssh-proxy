@@ -3,6 +3,9 @@
 #include <string>
 #include <filesystem>
 #include <vector>
+#include <optional>
+using std::optional;
+#include <toml++/impl/array.hpp>
 
 namespace sshProxy {
     using std::string;
@@ -21,6 +24,7 @@ namespace sshProxy {
                 string ipAddr;
                 int port;
                 string keyFile;
+                toml::array* extraArgs;
             };
             struct config {
                 bool verbose;
